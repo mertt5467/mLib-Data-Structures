@@ -1,35 +1,82 @@
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 void tryLineerHash();
 namespace LineerHash{
+    template<typename T>
     struct Entry{
         int key;
         bool isOccupied;
-        std::string value;
-        Entry(int key, std::string value): key(key), value(value), isOccupied(true){}
+        T value;
+        Entry(int key, T value): key(key), value(value), isOccupied(true){}
         Entry(): key(0), isOccupied(false){}
-        ~Entry() {
-            key = 0;
-            value.clear();
+
+        Entry(Entry&& other) noexcept : key(other.key), isOccupied(other.isOccupied), value(static_cast<T&&>(other.value)) {
+            other.isOccupied = false;
+            other.key = 0;
+        }
+        Entry(Entry& other) noexcept : key(other.key), isOccupied(other.isOccupied), value(static_cast<T&>(other.value)) {
+            // Empty
+        }
+        Entry& operator=(Entry&& other) noexcept {
+            if (this != &other) {
+                key = other.key;
+                isOccupied = other.isOccupied;
+
+
+                value = static_cast<T&&>(other.value);
+
+                other.isOccupied = false;
+                other.key = 0;
+            }
+            return *this;
+        }
+        Entry& operator=(const Entry& other) noexcept {
+            if (this != &other) {
+                key = other.key;
+                isOccupied = other.isOccupied;
+                
+
+                value = other.value;
+            }
+            return *this;
         }
     };
-
+    template<typename T>
     class HashTable {
     private:
-       Entry* table;
+       Entry<T>* table;
         int capacity;
         int size = 0;
-        int getHashCode(int key) {
-           return key%capacity;
+        int getHashCode(unsigned int key) const{
+           return key % capacity;
+        }
+        inline void next(int& index) const{
+            index = (index + 1) % capacity;
+        }
+        void shiftingDelete(int removeIndex) {
+            if (removeIndex >= capacity || removeIndex < 0) { throw std::out_of_range("Index out of bounds"); }
+            table[removeIndex].isOccupied = false;
+            int i = removeIndex;
+            for (next(i); table[i].isOccupied; next(i)) {
+                if (table[i].key % capacity != i &&  circularVector(removeIndex, getHashCode(table[i].key), i)) {
+                    table[removeIndex] = static_cast<Entry<T>&&>(table[i]);
+                    table[i].isOccupied = false;
+                    removeIndex = i;
+                }
+            }
+        }
+        bool circularVector(int target, int keyIndex, int current) const{
+            return (keyIndex <= target && target < current) || (current < keyIndex && keyIndex <= target) || (target < current && current < keyIndex);
         }
     public:
-        HashTable(int capacity) : capacity(capacity){table = new Entry[capacity];}
-        bool isEmpty() {return size == 0;}
-        bool isFull() {return size == capacity;}
+        HashTable(int capacity) : capacity(capacity){ table = new Entry<T>[capacity]; }
+        bool isEmpty() const{return size == 0;}
+        bool isFull() const{return size == capacity;}
         ~HashTable() {delete[] table;}
 
-        void put(const Entry& myEntry) {
+        void put(const Entry<T>& myEntry) {
             if (isFull()) {
                 throw std::out_of_range("Hash is full");
             }
@@ -39,32 +86,31 @@ namespace LineerHash{
                 size++;
             }else{
                 while (table[index].isOccupied && table[index].key != myEntry.key) {
-                        index++;
-                        if (index == capacity) {index = 0;}
-                }if (table[index].isOccupied == false) {table[index] = myEntry; size++;}
-                else{table[index].value = myEntry.value;}
-            }
-        }
-        const std::string& get(int key) {
-            int index = getHashCode(key);
-            if (isEmpty()) {
-                throw std::out_of_range("Value is not found");
-            }else if (table[index].key == key) {
-                return table[index].value;
-            }else {
-                int start = index;
-                while(table[index].isOccupied && table[index].key != key) {
-                    index++;
-                    if (index == start){break;}
-                    if (index == capacity) {index = 0;}
-                }if (index == start || table[index].isOccupied == false) {
-                    throw std::out_of_range("Value is not found");
-                }else{
-                    return table[index].value;
+                    next(index);
+                } 
+                if (table[index].isOccupied == false) {
+                    size++;
                 }
+                table[index] = myEntry;
             }
         }
-        void print() {
+        const T& get(int key) const{
+            int index, finish;
+            finish = index = getHashCode(key);
+            if (isEmpty()) {
+                throw std::out_of_range("Hash is Empty");
+            }else {
+                while (table[index].isOccupied) {
+                    if (table[index].key == key) { return table[index].value; }
+                    next(index);
+                    if (index == finish) {
+                        break;
+                    }
+                }
+                throw std::out_of_range("Value is not found");
+            }
+        }
+        void print() const{
             for (int i = 0; i < capacity; i++) {
                 if (table[i].isOccupied == false) {
                     std::cout << "NULL" << " | ";
@@ -74,20 +120,41 @@ namespace LineerHash{
             }
             std::cout << std::endl;
         }
+        T remove(int key) {
+            if (isEmpty()) {
+                throw std::out_of_range("Hash is Empty");
+            }
+            else {
+                int index = getHashCode(key);
+                int finish = index;
+                do {
+                    if (table[index].key == key) {
+                        T temp = table[index].value;
+                        shiftingDelete(index);
+                        size--;
+                        return temp;
+                    }
+                    next(index);
+                } while (index != finish && table[index].isOccupied);
+                throw std::out_of_range("Value is not found");
+            }
+        }
     };
 }
-namespace ChainingHash {
-    class LinkedList {
+namespace LinkedList {
+    template<typename T>
+    class Dll {
     private:
         struct Node {
             int key;
-            std::string value;
+            T value;
             Node* next;
             Node* prev;
-            Node(int data, std::string value): key(data), value(value), next(nullptr), prev(nullptr) {}
+            Node(int data, T value) : key(data), value(value), next(nullptr), prev(nullptr) {}
+            
         };
-        Node* head;
-        Node* tail;
+        Node* head = nullptr;
+        Node* tail = nullptr;
         int size = 0;
         void clear() {
             Node* current = head;
@@ -100,38 +167,40 @@ namespace ChainingHash {
             }
         }
     public:
-        ~LinkedList() {
+        ~Dll() {
             clear();
         }
-        LinkedList() : head(nullptr), tail(nullptr){}
-        void addFirst(int key, std::string value) {
+        Dll() : head(nullptr), tail(nullptr) {}
+        void addFirst(int key, T& value) {
             Node* myNode = new Node(key, value);
             if (size == 0) {
                 head = myNode;
                 tail = myNode;
-            }else {
+            }
+            else {
                 head->prev = myNode;
                 myNode->next = head;
                 head = myNode;
             }
             size++;
         }
-        void addLast(int key, std::string value) {
+        void addLast(int key, T& value) {
             Node* myNode = new Node(key, value);
             if (size == 0) {
                 head = myNode;
                 tail = myNode;
-            }else {
+            }
+            else {
                 tail->next = myNode;
                 myNode->prev = tail;
                 tail = myNode;
             }
             size++;
         }
-        int getSize() {
+        int getSize() const {
             return size;
         }
-        const std::string& get(int key) {
+        const T& get(int key) const {
             Node* current = head;
             while (current != nullptr) {
                 if (current->key == key) {
@@ -142,16 +211,22 @@ namespace ChainingHash {
             throw std::out_of_range("Key not found");
         }
         void deleteFirst() {
-            if (size == 0) {throw std::out_of_range("Empty");}
-            else if(size == 1){delete this;}
+            if (size == 0) { throw std::out_of_range("Empty"); }
+            else if (size == 1) {
+                delete head;
+                head = nullptr;
+                tail = nullptr;
+                size = 0;
+            }
             else {
                 Node* next = head->next;
                 delete head;
-                head = head->next;
-                head->prev = nullptr;   
+                head = next;
+                head->prev = nullptr;
+                size--;
             }
         }
-        void print() {
+        void print() const {
             if (size == 0) { std::cout << "NULL" << std::endl; return; }
             Node* temp = head;
             while (temp != nullptr) {
@@ -160,8 +235,8 @@ namespace ChainingHash {
             }
             std::cout << "TAIL" << std::endl;
         }
-        void printReverse() {
-            if (size == 0){std::cout << "NULL" << std::endl; return;}
+        void printReverse() const {
+            if (size == 0) { std::cout << "NULL" << std::endl; return; }
             Node* temp = tail;
             while (temp != nullptr) {
                 std::cout << temp->value << " <- ";
@@ -169,24 +244,38 @@ namespace ChainingHash {
             }
             std::cout << "HEAD" << std::endl;
         }
+        T remove() {
+
+        }
     };
 }
-
+namespace ChainingHash {
+    
+}
+using namespace LineerHash;
+static HashTable<std::string>* h1 = new HashTable<std::string>(10);
 int main() {
     tryLineerHash();
+    h1->print();
+    delete h1;
+    return 0;
 }
 void tryLineerHash() {
-    using namespace LineerHash;
-    HashTable h1(10);
-    h1.put(Entry(4, "Ali Demir"));
-    h1.put(Entry(2, "Fatma Gul"));
-    h1.put(Entry(5, "Mehmet Uranyum"));
-    h1.put(Entry(6, "Ural Celik"));
-    h1.put(Entry(10, "Feyza Cinko"));
-    h1.put(Entry(2, "Islam Mayda"));
-    h1.print();
+    h1->put(Entry<std::string>(4, "Ali Demir"));
+    h1->put(Entry<std::string>(2, "Fatma Bor"));
+    h1->put(Entry<std::string>(5, "Mehmet Uranyum"));
+    h1->put(Entry<std::string>(6, "Ural Celik"));
+    h1->put(Entry<std::string>(10, "Feyza Cinko"));
+    h1->put(Entry<std::string>(12, "Islam Mayda"));
+    h1->put(Entry<std::string>(22, "Eren Zumrut"));
+    h1->print();
+    h1->put(Entry<std::string>(7, "Sego Hidrojen"));
+    h1->put(Entry<std::string>(1, "Yagmur Komur"));
+    const std::string& e1 = h1->get(12);
+    h1->put(Entry<std::string> (28, e1));
+    h1->remove(12);
     try {
-        std::cout << h1.get(3) << std::endl;
+        std::cout << h1->get(3) << std::endl;
     }catch (std::out_of_range& e) {
         std::cout << e.what() << std::endl;
     }
