@@ -23,10 +23,7 @@ namespace LineerHash{
             if (this != &other) {
                 key = other.key;
                 isOccupied = other.isOccupied;
-
-
                 value = static_cast<T&&>(other.value);
-
                 other.isOccupied = false;
                 other.key = 0;
             }
@@ -36,8 +33,6 @@ namespace LineerHash{
             if (this != &other) {
                 key = other.key;
                 isOccupied = other.isOccupied;
-                
-
                 value = other.value;
             }
             return *this;
@@ -60,14 +55,14 @@ namespace LineerHash{
             table[removeIndex].isOccupied = false;
             int i = removeIndex;
             for (next(i); table[i].isOccupied; next(i)) {
-                if (table[i].key % capacity != i &&  circularVector(removeIndex, getHashCode(table[i].key), i)) {
+                if (table[i].key % capacity != i &&  isBetweenCircular(removeIndex, getHashCode(table[i].key), i)) {
                     table[removeIndex] = static_cast<Entry<T>&&>(table[i]);
                     table[i].isOccupied = false;
                     removeIndex = i;
                 }
             }
         }
-        bool circularVector(int target, int keyIndex, int current) const{
+        bool isBetweenCircular(int target, int keyIndex, int current) const{
             return (keyIndex <= target && target < current) || (current < keyIndex && keyIndex <= target) || (target < current && current < keyIndex);
         }
     public:
@@ -146,11 +141,10 @@ namespace LinkedList {
     class Dll {
     private:
         struct Node {
-            int key;
             T value;
             Node* next;
             Node* prev;
-            Node(int data, T value) : key(data), value(value), next(nullptr), prev(nullptr) {}
+            Node(T value) : value(value), next(nullptr), prev(nullptr) {}
             
         };
         Node* head = nullptr;
@@ -171,8 +165,8 @@ namespace LinkedList {
             clear();
         }
         Dll() : head(nullptr), tail(nullptr) {}
-        void addFirst(int key, T& value) {
-            Node* myNode = new Node(key, value);
+        void addFirst(T& value) {
+            Node* myNode = new Node(value);
             if (size == 0) {
                 head = myNode;
                 tail = myNode;
@@ -184,8 +178,8 @@ namespace LinkedList {
             }
             size++;
         }
-        void addLast(int key, T& value) {
-            Node* myNode = new Node(key, value);
+        void addLast(T& value) {
+            Node* myNode = new Node(value);
             if (size == 0) {
                 head = myNode;
                 tail = myNode;
@@ -200,15 +194,16 @@ namespace LinkedList {
         int getSize() const {
             return size;
         }
-        const T& get(int key) const {
+        const T& get(int index) const {
+            if (index < 0) { throw std::out_of_range("Invalid Index, cannot be less than 0."); }
+            else if(index >= size){ throw std::out_of_range("Index out of bounds. List size = " + size); }
             Node* current = head;
+            int i = 0;
             while (current != nullptr) {
-                if (current->key == key) {
-                    return current->value;
-                }
+                if (i == index) {return current->value;}
                 current = current->next;
+                i++;
             }
-            throw std::out_of_range("Key not found");
         }
         void deleteFirst() {
             if (size == 0) { throw std::out_of_range("Empty"); }
@@ -244,6 +239,7 @@ namespace LinkedList {
             }
             std::cout << "HEAD" << std::endl;
         }
+        // @TODO
         T remove() {
 
         }
