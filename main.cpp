@@ -9,7 +9,7 @@ namespace LineerHash{
         int key;
         bool isOccupied;
         T value;
-        Entry(int key, T value): key(key), value(value), isOccupied(true){}
+        Entry(int key, T value) noexcept : key(key), value(static_cast<T&&>(value)), isOccupied(true){}
         Entry(): key(0), isOccupied(false){}
 
         Entry(Entry&& other) noexcept : key(other.key), isOccupied(other.isOccupied), value(static_cast<T&&>(other.value)) {
@@ -136,6 +136,11 @@ namespace LineerHash{
         }
     };
 }
+
+namespace ChainingHash {
+    // @TODO: Sll kullanilarak doldurulacak
+}
+// @TODO: insertAt methodlari eklenecek
 namespace LinkedList {
     template<typename T>
     class Dll {
@@ -144,27 +149,48 @@ namespace LinkedList {
             T value;
             Node* next;
             Node* prev;
-            Node(T value) : value(value), next(nullptr), prev(nullptr) {}
-            
+            Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
+
+            Node(Node&& other) : value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) {
+                other.next = nullptr;
+                other.prev = nullptr;
+            }
+            Node(const Node& other) : value(other.value), next(nullptr), prev(nullptr) {
+                // Empty
+            }
+            Node& operator=(Node&& other) noexcept{
+                if (this != &other) {
+                    value = static_cast<T&&>(other.value);
+                }
+                return *this;
+            }
+            Node& operator=(const Node& other) noexcept {
+                if (this != &other) {
+                    value = other.value;
+                }
+                return *this;
+            }
         };
-        Node* head = nullptr;
-        Node* tail = nullptr;
-        int size = 0;
+        Node* head;
+        Node* tail;
+        int size;
         void clear() {
-            Node* current = head;
+            Node* temp = head;
             head = nullptr;
             tail = nullptr;
-            while (current != nullptr) {
-                Node* next = current->next;
-                delete current;
-                current = next;
+            while (temp != nullptr) {
+                Node* next = temp->next;
+                delete temp;
+                temp = next;
             }
         }
     public:
         ~Dll() {
             clear();
         }
-        Dll() : head(nullptr), tail(nullptr) {}
+        Dll() : head(nullptr), tail(nullptr), size(0) {}
+        bool isEmpty() const { return size == 0; }
+        int getSize() const { return size; }
         void addFirst(T& value) {
             Node* myNode = new Node(value);
             if (size == 0) {
@@ -191,35 +217,49 @@ namespace LinkedList {
             }
             size++;
         }
-        int getSize() const {
-            return size;
-        }
         const T& get(int index) const {
-            if (index < 0) { throw std::out_of_range("Invalid Index, cannot be less than 0."); }
-            else if(index >= size){ throw std::out_of_range("Index out of bounds. List size = " + size); }
-            Node* current = head;
+            if (isEmpty()) { throw std::out_of_range("List is Empty."); }
+            else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+            Node* temp = head;
             int i = 0;
-            while (current != nullptr) {
-                if (i == index) {return current->value;}
-                current = current->next;
+            while (temp != nullptr) {
+                if (i == index) {return temp->value;}
+                temp = temp->next;
                 i++;
             }
         }
-        void deleteFirst() {
-            if (size == 0) { throw std::out_of_range("Empty"); }
-            else if (size == 1) {
-                delete head;
+        T removeFirst() {
+            if (isEmpty()) { throw std::out_of_range("List is empty"); }
+            Node* target = head;
+            if (size == 1) {
                 head = nullptr;
                 tail = nullptr;
-                size = 0;
             }
             else {
-                Node* next = head->next;
-                delete head;
-                head = next;
+                head = head->next;
                 head->prev = nullptr;
-                size--;
             }
+
+            T returnValue = static_cast<T&&>(target->value);
+            delete target;
+            size--;
+            return returnValue;
+        }
+        T removeLast() {
+            if (isEmpty()) { throw std::out_of_range("List is empty"); }
+            Node* target = tail;
+            if (size == 1) {
+                head = nullptr;
+                tail = nullptr;
+            }
+            else {
+                tail = tail->prev;
+                tail->next = nullptr;
+            }
+            T returnValue = static_cast<T&&>(target->value);
+            delete target;
+            size--;
+            return returnValue;
         }
         void print() const {
             if (size == 0) { std::cout << "NULL" << std::endl; return; }
@@ -239,14 +279,108 @@ namespace LinkedList {
             }
             std::cout << "HEAD" << std::endl;
         }
-        // @TODO
-        T remove() {
+        int indexOf(const T& target) const{
+            if (isEmpty()) { throw std::out_of_range("List is Empty."); }
+            Node* temp = head;
+            for (int i = 0; i < size; i++) {
+                if (temp->value == target) {
+                    return i;
+                }
+                temp = temp->next;
+            }
+            throw std::out_of_range("Value is not found.");
+        }
+        T remove(int index) {
+            Node* target = nullptr;
+            if (isEmpty()) { throw std::out_of_range("List is empty."); }
+            else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+            else if (head->next == nullptr) {
+                target = head;
+                head = nullptr;
+                tail = nullptr;
+            }
+            else if (index == 0) { 
+                target = head; 
+                head = head->next;
+                head->prev = nullptr;
+            }
+            else {
+                Node* temp = head;
+                for (int step = 0; step <= index; step++) {
+                    if (index == step) {
+                        if (temp->next == nullptr) {
+                            target = temp;
+                            temp->prev->next = nullptr;
+                            tail = temp->prev;
+                        }
+                        else {
+                            target = temp;
+                            temp->prev->next = temp->next;
+                            temp->next->prev = temp->prev;
+                        }
+                    }
+                    temp = temp->next;
+                }
+            }
+            T returnValue = static_cast<T&&>(target->value);
 
+            delete target;
+            size--;
+            return returnValue;
         }
     };
-}
-namespace ChainingHash {
-    
+    template<typename T>
+    class Sll {
+    private:
+        struct Node {
+            T value;
+            Node* next;
+
+            Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr){}
+
+            Node(Node&& other) noexcept : value(static_cast<T&&>(other.value)), next(nullptr){
+                other.next = nullptr;
+            }
+
+            Node(Node& other) : value(value), next(nullptr){
+                // Empty
+            }
+
+            Node& operator=(Node&& other) noexcept {
+                if (this != &other) {
+                    value = static_cast<T&&>(other.value);
+                }
+                return *this;
+            }
+
+            Node& operator=(const Node& other) noexcept {
+                if (this != &other) {
+                    value = other.value;
+                }
+                return *this;
+            }
+        };
+        Node* head;
+        int size;
+        void clear() {
+            Node* temp = head;
+            head = nullptr;
+            while (temp != nullptr) {
+                Node* next = temp->next;
+                delete temp;
+                temp = next;
+                
+            }
+        }
+        public:
+        Sll() : head(nullptr), size(0) {}
+        bool isEmpty() const { return size == 0; }
+        int getSize() const { return size; }
+        ~Sll() {
+            clear();
+        }
+        // @TODO: Dll'deki butun fonksiyonlar buraya da doldurulacak.
+    };
 }
 using namespace LineerHash;
 static HashTable<std::string>* h1 = new HashTable<std::string>(10);
