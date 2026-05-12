@@ -342,7 +342,7 @@ namespace LinkedList {
                 other.next = nullptr;
             }
 
-            Node(Node& other) : value(value), next(nullptr){
+            Node(Node& other) : value(other.value), next(nullptr){
                 // Empty
             }
 
