@@ -3,6 +3,69 @@
 #include <stdexcept>
 
 void tryLineerHash();
+namespace Arrays {
+    template<typename T>
+    struct Array {
+        T* array;
+        int capacity;
+        Array(int capacity) : capacity(capacity){
+            array = new T[capacity]{};
+        }
+        ~Array() {
+            delete[] array;
+        }
+        T& operator[](int index) {
+            return array[index];
+        }
+        Array& operator=(const Array& other) noexcept {
+            if (this != &other) {
+                delete[] array;
+                capacity = other.capacity;
+                array = new T[capacity]{};
+                for (int i = 0; i < other.capacity; i++) { array[i] = other.array[i]; }
+            }
+            return *this;
+        }
+        int size() const {return capacity;}
+    };
+    template<typename T>
+    class ArrayList {
+    private:
+        Arrays::Array<T>* array;
+        int capacity;
+        int size;
+        void extendArray() {
+            int newCapacity = capacity*2;
+            Arrays::Array<T>* newArray = new Arrays::Array<T>(newCapacity);
+            for (int i = 0; i < size; i++) {
+                (*newArray)[i] = (*array)[i];
+            }
+            delete array;
+            array = newArray;
+            capacity *= 2;
+        }
+        void shrinkArray() {
+            int newCapacity = capacity/2;
+            Arrays::Array<T>* newArray = new Arrays::Array<T>(newCapacity);
+            for (int i = 0; i < size; i++) {
+                (*newArray)[i] = (*array)[i];
+            }
+            delete array;
+            array = newArray;
+            capacity /= 2;
+        }
+    public:
+        ~ArrayList() {
+            delete array;
+        }
+        ArrayList() : size(0), capacity(1) {
+            array = new Arrays::Array<T>(capacity);
+        }
+        void add(T array) {
+
+        }
+    };
+}
 namespace LineerHash{
     template<typename T>
     struct Entry{
@@ -151,7 +214,7 @@ namespace LinkedList {
             Node* prev;
             Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
 
-            Node(Node&& other) : value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) {
+            Node(Node&& other) noexcept: value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) { // Node n1 = n2; n1 = n3; Node n1 = new Node(n2);
                 other.next = nullptr;
                 other.prev = nullptr;
             }
