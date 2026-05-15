@@ -1,38 +1,41 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <random>
+#include <initializer_list>
 
 namespace mLib {
     namespace Arrays {
         template<typename T>
         class Array{
             int capacity;
-        public:
             T* array;
-            Array(int capacity) : capacity(capacity){
+            template<typename U> friend class List;
+        public:
+            Array(int capacity) : capacity(capacity){ // BigO(n)
                 array = new T[capacity]{};
             }
-            Array(const Array& other) : capacity(other.capacity){
+            Array(const Array& other) : capacity(other.capacity){ // BigO(n)
                 array = new T[capacity];
                 for (int i = 0; i < other.size(); i++) { array[i] = other.array[i]; }
             }
 
-            Array(Array&& other) : array(other.array), capacity(other.capacity) {
+            Array(Array&& other) : array(other.array), capacity(other.capacity) { // BigO(1)
                 other.array = nullptr;
                 other.capacity = 0;
             }
-            ~Array() {
+            ~Array() { 
                 delete[] array;
             }
-            T& operator[](int index) {
+            T& operator[](int index) { // BigO(1)
                 if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
                 return array[index];
             }
-            const T& operator[](int index) const{
+            const T& operator[](int index) const{ // BigO(1)
                 if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
                 return array[index];
             }
-            Array& operator=(Array&& other) noexcept {
+            Array& operator=(Array&& other) noexcept { // BigO(n)
                 if (this != &other) {
                     delete[] array;
                     array = other.array;
@@ -42,61 +45,84 @@ namespace mLib {
                 }
                 return *this;
             }
-            T* begin() { return array; }
-            T* end() { return array + capacity; }
-            const T* begin() const{ return array; }
-            const T* end() const { return array + capacity; }
-            int size() const {return capacity;}
-            void print() const {
-                for (int i = 0; i < capacity; i++) {
-                    std::cout << i << ". " << array[i] << " | ";
+            Array& operator=(const Array& other) { // BigO(n)
+                if (this != &other) {
+                    T* newArray = new T[other.capacity];
+                    for (int i = 0; i < other.capacity; i++) {
+                        newArray[i] = other[i];
+                    }
+                    delete[] array;
+                    array = newArray;
+                    capacity = other.capacity;
                 }
-                std::cout << "END" << std::endl;
+                return *this;
             }
+            T* begin() { return array; } 
+            T* end() { return array + capacity; } 
+            const T* begin() const{ return array; } 
+            const T* end() const { return array + capacity; } 
+            int size() const {return capacity;} 
         };
+        template<typename T>
+        std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
+            for (const auto& item : arr) {
+                os << item << " | ";
+            }
+            os << "END";
+            return os;
+        }
         template<typename T>
         class List {
         private:
             Arrays::Array<T> array;
             int size;
-            void extendArray() {
-                int newCapacity = array.size()*2;
-                Arrays::Array<T> newArray (newCapacity);
-                for (int i = 0; i < getSize(); i++) {
+            bool autoShrink;
+            void reSize(int targetSize, bool extend) { // BigO(n)
+                if (array.size() == 1 && extend == false) {
+                    return;
+                }
+                int newCapacity = targetSize;
+                Arrays::Array<T> newArray(newCapacity);
+                for (int i = 0; i < size; i++) {
                     newArray[i] = static_cast<T&&>(array[i]);
                 }
                 array = static_cast<Array<T>&&>(newArray);
             }
-            void shrinkArray() {
-                if (array.size() == 1) { return; }
-                int newCapacity = array.size()/2;
-                Arrays::Array<T> newArray (newCapacity);
-                for (int i = 0; i < size; i++) {
-                    newArray[i] = static_cast<T&&>(array[i]);
-                }
-                array = static_cast<T&&>(newArray);
-            }
         public:
             ~List() = default; 
-            List() : size(0), array(1){}
-            T& operator[](int index) {
+            List() : size(0), array(1), autoShrink(true){}
+            List(int startCapacity) : size(0), array(startCapacity), autoShrink(true) {}
+            List(bool autoShrink) : size(0), array(1), autoShrink(autoShrink){}
+            List(int startCapacity, bool autoShrink) : size(0), array(startCapacity), autoShrink(autoShrink){}
+            List(std::initializer_list<T> initList) : size(0), array(initList.size() > 0 ? initList.size() : 1) {
+                for (const auto& item : initList) {
+                    add(item);
+                }
+            }
+            void reserve(int newCapacity) {
+                if (newCapacity > array.size()) {
+                    reSize(newCapacity, true);
+                }
+                autoShrink = false;
+            }
+            T& operator[](int index) { // BigO(1)
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 return array[index];
             }
-            const T& operator[](int index) const {
+            const T& operator[](int index) const { // BigO(1)
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 return array[index];
             }
-            void add(const T& value) {
+            void add(const T& value) { // (Amortized O(1))
                 add(size, value);
             }
-            void add(T&& value) {
+            void add(T&& value) { // (Amortized O(1))
                 add(size, static_cast<T&&>(value));
             }
-            void add(int index, const T& value) {
+            void add(int index, const T& value) { // BigO(n)
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 if (size == array.size()) {
-                    extendArray();
+                    reSize(array.size()*2, true);
                 }
                 for (int i = size; i > index; i--) {
                     array[i] = static_cast<T&&>(array[i - 1]);
@@ -104,10 +130,10 @@ namespace mLib {
                 array[index] = value;
                 size++;
             }
-            void add(int index, T&& value) {
+            void add(int index, T&& value) { // BigO(n)
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 if (size == array.size()) {
-                    extendArray();
+                    reSize(array.size() * 2, true);
                 }
                 for (int i = size; i > index; i--) {
                     array[i] = static_cast<T&&>(array[i-1]);
@@ -115,11 +141,11 @@ namespace mLib {
                 array[index] = static_cast<T&&>(value);
                 size++;
             }
-            const T& get(int index) const{
+            const T& get(int index) const{ // BigO(1)
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 return array[index];
             }
-            int indexOf(const T& value) const {
+            int indexOf(const T& value) const { // BigO(n)
                 for (int i = 0; i < size; i++) {
                     if (array[i] == value) {
                         return i;
@@ -127,7 +153,41 @@ namespace mLib {
                 }
                 return -1;
             }
-            T remove(int index) {
+            void set(int index, T&& value) { // BigO(1)
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else {
+                    array[index] = static_cast<T&&>(value);
+                }
+            }
+            void set(int index, const T& value){ // BigO(1)
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else {
+                    array[index] = value;
+                }
+            }
+            void shuffle() {
+                if (isEmpty() || size == 1) { // BigO(n)
+                    return;
+                }
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<int> distr(0, size-1);
+                for (int i = 0; i < size; i++) {
+                    int randomNumber = distr(gen);
+                    int randomNumber2 = distr(gen);
+                    swap(randomNumber, randomNumber2);
+                }
+            }
+            void swap(int index1, int index2) { // BigO(1)
+                if(index1 < 0 || index1 >= size || index2 < 0 || index2 >= size){ throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else if (index1 == index2) { return; }
+                else {
+                    T temp = static_cast<T&&>(array[index1]);
+                    array[index1] = static_cast<T&&>(array[index2]);
+                    array[index2] = static_cast<T&&>(temp);
+                }
+            }
+            T remove(int index) { // BigO(n)
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = "  + std::to_string(size)); }
                 else {
                     T temp = static_cast<T&&>(array[index]);
@@ -135,26 +195,71 @@ namespace mLib {
                         array[i] = static_cast<T&&>(array[i + 1]);
                     }
                     size--;
-                    if (size > 0 && size < (array.size() / 4)) {
-                        shrinkArray();
+                    if (size > 0 && size < (array.size() / 4) && autoShrink) {
+                        reSize(array.size()/2, false);
                     }
                     return temp;
                 }
             }
-            T* begin() { return array.array; }
+            void sort() {
+                // @TODO: WRITE ME!!! (MERGE SORT OR QUICK SORT)
+            }
+            T& front() { // BigO(1)
+                if (size == 0) {
+                    throw std::out_of_range("List is empty.");
+                }
+                else {
+                    return array[0];
+                }
+            }
+            const T& front() const { // BigO(1)
+                if (size == 0) {
+                    throw std::out_of_range("List is empty.");
+                }
+                else {
+                    return array[0];
+                }
+            }
+            T& back() { // BigO(1)
+                if (size == 0) { 
+                    throw std::out_of_range("List is empty.");
+                }
+                else {
+                    return array[size-1];
+                }
+            }
+            const T& back() const { // BigO(1)
+                if (size == 0) {
+                    throw std::out_of_range("List is empty.");
+                }
+                else {
+                    return array[size - 1];
+                }
+            }
+            T* begin() { return array.array; } 
             T* end() { return array.array + size; }
             const T* begin() const{ return array.array; }
             const T* end() const { return array.array + size; }
-            void clear() { size = 0; }
+            void clear() { size = 0; if (autoShrink) { reSize(1, false); } }
             int getSize() const { return size; }
-            void print() const {
-                if (size == 0) { std::cout << "EMPTY" << std::endl; return; }
-                for (int i = 0; i < size; i++) {
-                    std::cout << i << ". " << array[i] << " | ";
-                }
-                std::cout << "END" << std::endl;
-            }
+            bool isEmpty() const { return size == 0; }
+            int getCapacity() const { return array.size(); }
+            bool infoAutoShrink() const { return autoShrink; }
+            void setAutoShrink(bool autoShrink) { this->autoShrink = autoShrink; if (size > 0 && size < (array.size() / 4) && autoShrink) { reSize(array.size() / 2, false);}}
         };
+        template<typename T>
+        std::ostream& operator<<(std::ostream& os, const List<T>& list) {
+            if (list.getSize() == 0) {
+                os << "EMPTY";
+            }
+            else {
+                for (const auto& item : list) {
+                    os << item << " | ";
+                }
+                os << "END";
+            }
+            return os;
+        }
     }
     namespace Hash{
         template<typename T>
@@ -172,7 +277,7 @@ namespace mLib {
             Entry(Entry& other) noexcept : key(other.key), isOccupied(other.isOccupied), value(static_cast<T&>(other.value)) {
                 // Empty
             }
-            Entry& operator=(Entry&& other) noexcept {
+            Entry& operator=(Entry&& other) noexcept { // BigO(1)
                 if (this != &other) {
                     key = other.key;
                     isOccupied = other.isOccupied;
@@ -182,7 +287,7 @@ namespace mLib {
                 }
                 return *this;
             }
-            Entry& operator=(const Entry& other) noexcept {
+            Entry& operator=(const Entry& other) noexcept { // BigO(1)
                 if (this != &other) {
                     key = other.key;
                     isOccupied = other.isOccupied;
@@ -203,7 +308,7 @@ namespace mLib {
             inline void next(int& index) const{
                 index = (index + 1) % capacity;
             }
-            void shiftingDelete(int removeIndex) {
+            void shiftingDelete(int removeIndex) { // BigO(n)
                 if (removeIndex >= capacity || removeIndex < 0) { throw std::out_of_range("Index out of bounds"); }
                 table[removeIndex].isOccupied = false;
                 int i = removeIndex;
@@ -224,7 +329,7 @@ namespace mLib {
             bool isFull() const{return size == capacity;}
             ~LineerHash() {delete[] table;}
 
-            void put(const Entry<T>& myEntry) {
+            void put(const Entry<T>& myEntry) { // BigO(n)
                 if (isFull()) {
                     throw std::out_of_range("Hash is full");
                 }
@@ -242,7 +347,7 @@ namespace mLib {
                     table[index] = myEntry;
                 }
             }
-            const T& get(int key) const{
+            const T& get(int key) const{ // BigO(n)
                 int index, finish;
                 finish = index = getHashCode(key);
                 if (isEmpty()) {
@@ -268,7 +373,7 @@ namespace mLib {
                 }
                 std::cout << std::endl;
             }
-            T remove(int key) {
+            T remove(int key) { // BigO(n)
                 if (isEmpty()) {
                     throw std::out_of_range("Hash is Empty");
                 }
@@ -289,10 +394,10 @@ namespace mLib {
             }
         };
         class ChainingHash {
-            // @TODO: Sll kullanilarak doldurulacak
+            // @TODO: WRITE ME!!! (SLL)
         };
     }
-    // @TODO: insertAt methodlari eklenecek
+    // @TODO: insertAt functions will be added
     namespace LinkedList {
         template<typename T>
         class Dll {
@@ -303,20 +408,20 @@ namespace mLib {
                 Node* prev;
                 Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
 
-                Node(Node&& other) noexcept: value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) { // Node n1 = n2; n1 = n3; Node n1 = new Node(n2);
+                Node(Node&& other) noexcept: value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) { 
                     other.next = nullptr;
                     other.prev = nullptr;
                 }
                 Node(const Node& other) : value(other.value), next(nullptr), prev(nullptr) {
                     // Empty
                 }
-                Node& operator=(Node&& other) noexcept{
+                Node& operator=(Node&& other) noexcept{ // BigO(1)
                     if (this != &other) {
                         value = static_cast<T&&>(other.value);
                     }
                     return *this;
                 }
-                Node& operator=(const Node& other) noexcept {
+                Node& operator=(const Node& other) noexcept { // BigO(1)
                     if (this != &other) {
                         value = other.value;
                     }
@@ -343,7 +448,7 @@ namespace mLib {
             Dll() : head(nullptr), tail(nullptr), size(0) {}
             bool isEmpty() const { return size == 0; }
             int getSize() const { return size; }
-            void addFirst(T& value) {
+            void addFirst(T& value) { // BigO(1)
                 Node* myNode = new Node(value);
                 if (size == 0) {
                     head = myNode;
@@ -356,7 +461,7 @@ namespace mLib {
                 }
                 size++;
             }
-            void addLast(T& value) {
+            void addLast(T& value) { // BigO(1)
                 Node* myNode = new Node(value);
                 if (size == 0) {
                     head = myNode;
@@ -369,7 +474,7 @@ namespace mLib {
                 }
                 size++;
             }
-            const T& get(int index) const {
+            const T& get(int index) const { // BigO(n)
                 if (isEmpty()) { throw std::out_of_range("List is Empty."); }
                 else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 Node* temp = head;
@@ -380,7 +485,7 @@ namespace mLib {
                     i++;
                 }
             }
-            T removeFirst() {
+            T removeFirst() { // BigO(1)
                 if (isEmpty()) { throw std::out_of_range("List is empty"); }
                 Node* target = head;
                 if (size == 1) {
@@ -397,7 +502,7 @@ namespace mLib {
                 size--;
                 return returnValue;
             }
-            T removeLast() {
+            T removeLast() { // BigO(1)
                 if (isEmpty()) { throw std::out_of_range("List is empty"); }
                 Node* target = tail;
                 if (size == 1) {
@@ -431,7 +536,7 @@ namespace mLib {
                 }
                 std::cout << "HEAD" << std::endl;
             }
-            int indexOf(const T& target) const{
+            int indexOf(const T& target) const{ // BigO(n)
                 if (isEmpty()) { throw std::out_of_range("List is Empty."); }
                 Node* temp = head;
                 for (int i = 0; i < size; i++) {
@@ -442,7 +547,7 @@ namespace mLib {
                 }
                 throw std::out_of_range("Value is not found.");
             }
-            T remove(int index) {
+            T remove(int index) { // BigO(n)
                 Node* target = nullptr;
                 if (isEmpty()) { throw std::out_of_range("List is empty."); }
                 else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
@@ -498,14 +603,14 @@ namespace mLib {
                     // Empty
                 }
 
-                Node& operator=(Node&& other) noexcept {
+                Node& operator=(Node&& other) noexcept { // BigO(1)
                     if (this != &other) {
                         value = static_cast<T&&>(other.value);
                     }
                     return *this;
                 }
 
-                Node& operator=(const Node& other) noexcept {
+                Node& operator=(const Node& other) noexcept { // BigO(1)
                     if (this != &other) {
                         value = other.value;
                     }
@@ -531,7 +636,7 @@ namespace mLib {
             ~Sll() {
                 clear();
             }
-            // @TODO: Dll'deki butun fonksiyonlar buraya da doldurulacak.
+            // @TODO: WRITE ME!!! (DLL)
         };
     }
 }
@@ -584,21 +689,20 @@ std::ostream& operator<<(std::ostream& os, const myVector& vector) {
     os << vector.name << " -> [" << vector.x << ", " << vector.y << ", " << vector.z << "]";
     return os;
 }
-static List<myVector> l1;
 void tryList() {
     myVector v1("v1", 20, -29, 50);
     myVector v2("v2", 20, -29, 50);
     myVector v3("v3", 25, 95, 28);
-    l1.add(v1);
-    l1.add(v2);
-    l1.add(v3);
+    myVector v4("v4", 34, 21, -4);
+    List<myVector> l1 = { v1, v2, v3 };
+    l1.add(v4);
     if (v1 == v3) {
         std::cout << "true ";
     }
     else {
         std::cout << "false ";
     }
-    l1.print();
+    std::cout << l1;
 }
 */
 int main() {
