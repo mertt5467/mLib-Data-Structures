@@ -4,23 +4,30 @@
 #include <random>
 #include <initializer_list>
 
+#ifdef DEBUG
+    #define DEBUG_LOG(obj_ptr, x) std::cerr << "[DEBUG]" << "obj: " << obj_ptr << " | " <<  x << std::endl
+#else
+    #define DEBUG_LOG(obj_ptr, x)
+#endif
+
+
+using std::to_string;
 namespace mLib {
     namespace Arrays {
         template<typename T>
         class Array{
             int capacity;
             T* array;
-            template<typename U> friend class List;
         public:
             Array(int capacity) : capacity(capacity){ // BigO(n)
                 array = new T[capacity]{};
             }
             Array(const Array& other) : capacity(other.capacity){ // BigO(n)
                 array = new T[capacity];
-                for (int i = 0; i < other.size(); i++) { array[i] = other.array[i]; }
+                for (int i = 0; i < capacity; i++) { array[i] = other.array[i]; }
             }
 
-            Array(Array&& other) : array(other.array), capacity(other.capacity) { // BigO(1)
+            Array(Array&& other) noexcept : array(other.array), capacity(other.capacity) { // BigO(1)
                 other.array = nullptr;
                 other.capacity = 0;
             }
@@ -65,6 +72,7 @@ namespace mLib {
         };
         template<typename T>
         std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
+            DEBUG_LOG(&arr, "Running Array << operator");
             for (const auto& item : arr) {
                 os << item << " | ";
             }
@@ -74,43 +82,117 @@ namespace mLib {
         template<typename T>
         class List {
         private:
-            Arrays::Array<T> array;
+            T* array;
+            int capacity;
             int size;
             bool autoShrink;
+            List(int capacity, int size, bool autoShrink) : capacity(capacity), size(size), autoShrink(autoShrink) {
+                if (capacity <= 0) { throw std::out_of_range("Capacity cannot be 0 or less than 0."); }
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+
+                size_t totalBytes = capacity * sizeof(T);
+                size_t totalBits = totalBytes * 8; // 1 Byte == 8 Bit
+                DEBUG_LOG(this, "List is created. Cap = " + to_string(capacity) + " | Size = " + to_string(size) + " | Shrink mode = " + to_string(autoShrink) + " | Total Size = " + to_string(totalBytes) + "Byte (" + to_string(totalBits) +" bits)");
+            }
+
             void reSize(int targetSize, bool extend) { // BigO(n)
-                if (array.size() == 1 && extend == false) {
+                DEBUG_LOG(this, "Running reSize function");
+                if (capacity == 1 && extend == false) {
+                    DEBUG_LOG(this, "Capacity 1; no shrink was made, it's returned.");
                     return;
                 }
-                int newCapacity = targetSize;
-                Arrays::Array<T> newArray(newCapacity);
+                T* newArray = static_cast<T*>(::operator new(targetSize * sizeof(T)));
                 for (int i = 0; i < size; i++) {
-                    newArray[i] = static_cast<T&&>(array[i]);
+                    new (& newArray[i]) T(static_cast<T&&>(array[i]));
+                    array[i].~T();
                 }
-                array = static_cast<Array<T>&&>(newArray);
+                ::operator delete(array);
+
+                array = newArray;
+                capacity = targetSize;
             }
         public:
-            ~List() = default; 
-            List() : size(0), array(1), autoShrink(true){}
-            List(int startCapacity) : size(0), array(startCapacity), autoShrink(true) {}
-            List(bool autoShrink) : size(0), array(1), autoShrink(autoShrink){}
-            List(int startCapacity, bool autoShrink) : size(0), array(startCapacity), autoShrink(autoShrink){}
-            List(std::initializer_list<T> initList) : size(0), array(initList.size() > 0 ? initList.size() : 1) {
+            ~List() {
+                clear();
+                ::operator delete(array);
+            }
+            List() : List(1, 0, true){}
+            explicit List(int startCapacity) : List(startCapacity, 0, true) {}
+            explicit List(bool autoShrink) : List(1, 0, autoShrink){}
+            List(int startCapacity, bool autoShrink) : List(startCapacity, 0, autoShrink){}
+            explicit List(std::initializer_list<T> initList) : List(initList.size() > 0 ? initList.size() : 1, 0, true) {
                 for (const auto& item : initList) {
                     add(item);
                 }
             }
+            List(const List& other) : List(other.capacity, 0, other.autoShrink){
+                for (const auto& item : other) {
+                    add(item);
+                }
+            }
+            List(List&& other) noexcept : array(other.array), capacity(other.capacity), size(other.size), autoShrink(other.autoShrink) {
+                other.array = nullptr;
+                other.capacity = 0;
+                other.size = 0;
+            }
+            List& operator=(const List& other) {
+                if (this != &other) {
+                    int newCap = other.capacity;
+                    int newSize = other.size;
+                    bool newShrink = other.autoShrink;
+
+                    T* newArray = static_cast<T*>(::operator new(other.capacity * sizeof(T)));
+
+                    try {
+                        for (int i = 0; i < newSize; i++) {
+                            new (&newArray[i]) T(other[i]);
+                        }
+                    }catch(...){
+                        ::operator delete(newArray);
+                        throw;
+                    }
+                    for (int i = 0; i < size; i++) {
+                        array[i].~T();
+                    }
+                    ::operator delete(array);
+                    array = newArray;
+                    capacity = newCap;
+                    size = newSize;
+                    autoShrink = newShrink;
+                }
+                return *this;
+            }
+            List& operator=(List&& other) noexcept{
+                if (this != &other) {
+                    T* tempArr = array;
+                    int tempCap = capacity;
+                    int tempSize = size;
+                    bool tempAutoShrink = autoShrink;
+
+                    array = other.array;
+                    capacity = other.capacity;
+                    size = other.size;
+                    autoShrink = other.autoShrink;
+                
+                    other.array = tempArr;
+                    other.capacity = tempCap;
+                    other.size = tempSize;
+                    other.autoShrink = tempAutoShrink;
+                }
+                return *this;
+            }
             void reserve(int newCapacity) {
-                if (newCapacity > array.size()) {
+                if (newCapacity > capacity) {
                     reSize(newCapacity, true);
                 }
                 autoShrink = false;
             }
             T& operator[](int index) { // BigO(1)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 return array[index];
             }
             const T& operator[](int index) const { // BigO(1)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 return array[index];
             }
             void add(const T& value) { // (Amortized O(1))
@@ -120,29 +202,43 @@ namespace mLib {
                 add(size, static_cast<T&&>(value));
             }
             void add(int index, const T& value) { // BigO(n)
-                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
-                if (size == array.size()) {
-                    reSize(array.size()*2, true);
+                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
+                else if(size == capacity) {
+                    reSize(capacity*2, true);
                 }
-                for (int i = size; i > index; i--) {
-                    array[i] = static_cast<T&&>(array[i - 1]);
+                if (index == size) {
+                    new (&array[index]) T(value);
                 }
-                array[index] = value;
+                else {
+                    new (&array[size]) T(static_cast<T&&>(array[size - 1]));
+                    for (int i = size - 1; i > index; i--) {
+                        array[i] = static_cast<T&&>(array[i - 1]);
+                    }
+                    array[index] = value;
+                    
+                }
                 size++;
             }
             void add(int index, T&& value) { // BigO(n)
-                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
-                if (size == array.size()) {
-                    reSize(array.size() * 2, true);
+                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
+                else if (size == capacity) {
+                    reSize(capacity * 2, true);
                 }
-                for (int i = size; i > index; i--) {
-                    array[i] = static_cast<T&&>(array[i-1]);
+                if (index == size) {
+                    new (&array[index]) T(static_cast<T&&>(value));
                 }
-                array[index] = static_cast<T&&>(value);
+                else {
+                    new (&array[size]) T(static_cast<T&&>(array[size - 1]));
+                    for (int i = size-1; i > index; i--) {
+                        array[i] = static_cast<T&&>(array[i - 1]);
+                    }
+                    array[index] = static_cast<T&&>(value);
+                    
+                } 
                 size++;
             }
             const T& get(int index) const{ // BigO(1)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 return array[index];
             }
             int indexOf(const T& value) const { // BigO(n)
@@ -154,13 +250,13 @@ namespace mLib {
                 return -1;
             }
             void set(int index, T&& value) { // BigO(1)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else {
                     array[index] = static_cast<T&&>(value);
                 }
             }
             void set(int index, const T& value){ // BigO(1)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else {
                     array[index] = value;
                 }
@@ -171,15 +267,14 @@ namespace mLib {
                 }
                 std::random_device rd;
                 std::mt19937 gen(rd());
-                std::uniform_int_distribution<int> distr(0, size-1);
-                for (int i = 0; i < size; i++) {
-                    int randomNumber = distr(gen);
-                    int randomNumber2 = distr(gen);
-                    swap(randomNumber, randomNumber2);
+                std::uniform_int_distribution<int> distr;
+                for (int i = size-1; i > 0; i--) {
+                    int randomNumber = distr(gen, std::uniform_int_distribution<int>::param_type(0, i));
+                    swap(i, randomNumber);
                 }
             }
             void swap(int index1, int index2) { // BigO(1)
-                if(index1 < 0 || index1 >= size || index2 < 0 || index2 >= size){ throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                if(index1 < 0 || index1 >= size || index2 < 0 || index2 >= size){ throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (index1 == index2) { return; }
                 else {
                     T temp = static_cast<T&&>(array[index1]);
@@ -188,15 +283,16 @@ namespace mLib {
                 }
             }
             T remove(int index) { // BigO(n)
-                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = "  + std::to_string(size)); }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = "  + to_string(size)); }
                 else {
                     T temp = static_cast<T&&>(array[index]);
                     for (int i = index; i < size - 1; i++) {
                         array[i] = static_cast<T&&>(array[i + 1]);
                     }
+                    array[size-1].~T();
                     size--;
-                    if (size > 0 && size < (array.size() / 4) && autoShrink) {
-                        reSize(array.size()/2, false);
+                    if (size > 0 && size < (capacity / 4) && autoShrink) {
+                        reSize(capacity/2, false);
                     }
                     return temp;
                 }
@@ -236,16 +332,22 @@ namespace mLib {
                     return array[size - 1];
                 }
             }
-            T* begin() { return array.array; } 
-            T* end() { return array.array + size; }
-            const T* begin() const{ return array.array; }
-            const T* end() const { return array.array + size; }
-            void clear() { size = 0; if (autoShrink) { reSize(1, false); } }
+            void clear() { 
+                for (int i = 0; i < size; i++) {
+                    array[i].~T();
+                }
+                size = 0;
+                if (autoShrink) { reSize(1, false); }
+            }
+            T* begin() { return array; } 
+            T* end() { return array + size; }
+            const T* begin() const{ return array; }
+            const T* end() const { return array + size; }
             int getSize() const { return size; }
             bool isEmpty() const { return size == 0; }
-            int getCapacity() const { return array.size(); }
+            int getCapacity() const { return capacity; }
             bool infoAutoShrink() const { return autoShrink; }
-            void setAutoShrink(bool autoShrink) { this->autoShrink = autoShrink; if (size > 0 && size < (array.size() / 4) && autoShrink) { reSize(array.size() / 2, false);}}
+            void setAutoShrink(bool autoShrink) { this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false);}}
         };
         template<typename T>
         std::ostream& operator<<(std::ostream& os, const List<T>& list) {
