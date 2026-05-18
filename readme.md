@@ -1,7 +1,7 @@
-🌐 [English](#mlib-handcrafted-data-structures--algorithms-library) | [Türkçe](#mlib-el-yapımı-veri-yapıları-ve-algoritmalar-kütüphanesi)
+🌐 [English](#english) | [Türkçe](#turkish)
 
 ---
-# 🛠️ mLib (Handcrafted Data Structures & Algorithms Library)
+<h1 id="english">🛠️ mLib (Handcrafted Data Structures & Algorithms Library)</h1>
 
 `mLib` is a comprehensive data structures and algorithms library built entirely from scratch using **low-level memory management (raw memory management)** and modern C++ standards (Rule of 5, Move Semantics, Exception Safety). It is designed to keep dependencies on the C++ standard library (`std::`) to an absolute minimum.
 
@@ -19,11 +19,11 @@
 | :--- | :---: | :--- |
 | `mLib::Arrays::Array` (Static Array) | ✅ | Completed. |
 | `mLib::Arrays::List` (Dynamic Array) | 🚧 | Missing only sort method |
-| `mLib::Lists::SLL` (Singly Linked List) | 🚧 | In Progress |
-| `mLib::Lists::DLL` (Doubly Linked List) | 🚧 | Core logic ready, undergoing refactoring |
-| `mLib::Lists::CLL` (Circular Linked List) | ❌ | |
-| `mLib::Hashing::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
-| `mLib::Hashing::ChainingHash` (Chaining) | ❌ |  |
+| `mLib::LinkedList::Sll` (Singly Linked List) | 🚧 | In Progress |
+| `mLib::LinkedList::Dll` (Doubly Linked List) | 🚧 | Core logic ready, undergoing refactoring |
+| `mLib::LinkedList::Cll` (Circular Linked List) | ❌ | |
+| `mLib::Hash::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
+| `mLib::Hash::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Containers::Stack` | ❌ | |
 | `mLib::Containers::Queue` | ❌ | |
 | `mLib::Containers::PriorityQueue` | ❌ | |
@@ -51,7 +51,7 @@ To activate the `DEBUG` macro:
 ```
 ---
 
-# 🛠️ mLib (El Yapımı Veri Yapıları ve Algoritmalar Kütüphanesi)
+<h1 id="turkish">🛠️ mLib (El Yapımı Veri Yapıları ve Algoritmalar Kütüphanesi)</h1>
 
 `mLib`, C++ standart kütüphanesine (`std::`) bağımlılığı minimumda tutarak, tamamen **low-level bellek yönetimi (raw memory management)** ve modern C++ standartları (Rule of 5, Move Semantics, Exception Safety) kullanılarak sıfırdan geliştirilmiş kapsamlı bir veri yapıları ve algoritmalar kütüphanesidir.
 
@@ -69,9 +69,9 @@ To activate the `DEBUG` macro:
 | :--- | :---: | :--- |
 | `mLib::Arrays::Array` (Statik Dizi) | ✅ | Tamamlandı. |
 | `mLib::Arrays::List` (Dinamik Dizi) | 🚧 | Sadece sıralama algoritması eksik. |
-| `mLib::Lists::SLL` (Singly Linked List) | 🚧 | Yapım Aşamasında |
-| `mLib::Lists::DLL` (Doubly Linked List) | 🚧 | Temel mantık hazır, refactor edilecek |
-| `mLib::Lists::CLL` (Circular Linked List) | ❌ | |
+| `mLib::LinkedList::Sll` (Singly Linked List) | 🚧 | Yapım Aşamasında |
+| `mLib::LinkedList::Dll` (Doubly Linked List) | 🚧 | Temel mantık hazır, refactor edilecek |
+| `mLib::LinkedList::Cll` (Circular Linked List) | ❌ | |
 | `mLib::Hash::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::Hash::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Containers::Stack` | ❌ | |

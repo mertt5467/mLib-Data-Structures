@@ -1,8 +1,8 @@
-#include "mLib.h"
+#include "mLib.hpp"
 // @TEST !!! [Hash::LineerHash]
 /*
-using mLib::LineerHash::HashTable;
-using mLib::LineerHash::Entry;
+using mLib::Hash::LineerHash;
+using mLib::Hash::Entry;
 static HashTable<std::string>* h1 = new HashTable<std::string>(10);
 void tryLineerHash() {
     h1->put(Entry<std::string>(4, "Ali Demir"));
