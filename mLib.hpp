@@ -23,18 +23,22 @@ namespace mLib {
         public:
             Array(int capacity) : capacity(capacity) { // BigO(n)
                 array = new T[capacity]{};
+                DEBUG_LOG(this, "Array created. Capacity: " << capacity);
             }
             Array(const Array& other) : capacity(other.capacity) { // BigO(n)
                 array = new T[capacity];
                 for (int i = 0; i < capacity; i++) { array[i] = other.array[i]; }
+                DEBUG_LOG(this, "Array copy-constructed from obj: " << &other << " (Cap: " << capacity << ")");
             }
 
             Array(Array&& other) noexcept : array(other.array), capacity(other.capacity) { // BigO(1)
                 other.array = nullptr;
                 other.capacity = 0;
+                DEBUG_LOG(this, "Array move-constructed from obj: " << &other << " (Cap: " << capacity << ")");
             }
             ~Array() {
                 delete[] array;
+                DEBUG_LOG(this, "Array destroyed. Memory freed.");
             }
             T& operator[](int index) { // BigO(1)
                 if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
@@ -52,6 +56,7 @@ namespace mLib {
                     other.array = nullptr;
                     other.capacity = 0;
                 }
+                DEBUG_LOG(this, "Array move-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                 return *this;
             }
             Array& operator=(const Array& other) { // BigO(n)
@@ -64,6 +69,7 @@ namespace mLib {
                     array = newArray;
                     capacity = other.capacity;
                 }
+                DEBUG_LOG(this, "Array copy-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                 return *this;
             }
             T* begin() { return array; }
@@ -94,13 +100,13 @@ namespace mLib {
 
                 size_t totalBytes = capacity * sizeof(T);
                 size_t totalBits = totalBytes * 8; // 1 Byte == 8 Bit
-                DEBUG_LOG(this, "List is created. Cap = " + to_string(capacity) + " | Size = " + to_string(size) + " | Shrink mode = " + to_string(autoShrink) + " | Total Size = " + to_string(totalBytes) + "Byte (" + to_string(totalBits) + " bits)");
+                DEBUG_LOG(this, "List dynamically allocated. Cap = " + to_string(capacity) + " | Size = " + to_string(size) + " | Shrink mode = " + to_string(autoShrink) + " | Total Size = " + to_string(totalBytes) + "Byte (" + to_string(totalBits) + " bits)");
             }
 
             void reSize(int targetSize, bool extend) { // BigO(n)
-                DEBUG_LOG(this, "Running reSize function");
+                DEBUG_LOG(this, "Running reSize. Target Cap: " << targetSize << " | Extend Mode: " << extend);
                 if (capacity == 1 && extend == false) {
-                    DEBUG_LOG(this, "Capacity 1; no shrink was made, it's returned.");
+                    DEBUG_LOG(this, "Capacity is already 1; no shrink operation executed.");
                     return;
                 }
                 T* newArray = static_cast<T*>(::operator new(targetSize * sizeof(T)));
@@ -112,11 +118,13 @@ namespace mLib {
 
                 array = newArray;
                 capacity = targetSize;
+                DEBUG_LOG(this, "reSize completed successfully.");
             }
         public:
             ~List() {
                 clear();
                 ::operator delete(array);
+                DEBUG_LOG(this, "List destroyed. Cleaning up elements and freeing memory.");
             }
             List() : List(1, 0, true) {}
             explicit List(int startCapacity) : List(startCapacity, 0, true) {}
@@ -126,16 +134,19 @@ namespace mLib {
                 for (const auto& item : initList) {
                     add(item);
                 }
+                DEBUG_LOG(this, "List constructed via initializer_list (Elements: " << initList.size() << ")");
             }
             List(const List& other) : List(other.capacity, 0, other.autoShrink) {
                 for (const auto& item : other) {
                     add(item);
                 }
+                DEBUG_LOG(this, "List copy-constructed from obj: " << &other);
             }
             List(List&& other) noexcept : array(other.array), capacity(other.capacity), size(other.size), autoShrink(other.autoShrink) {
                 other.array = nullptr;
                 other.capacity = 0;
                 other.size = 0;
+                DEBUG_LOG(this, "List move-constructed from obj: " << &other);
             }
             List& operator=(const List& other) {
                 if (this != &other) {
@@ -163,6 +174,7 @@ namespace mLib {
                     size = newSize;
                     autoShrink = newShrink;
                 }
+                DEBUG_LOG(this, "List copy-assigned from obj: " << &other);
                 return *this;
             }
             List& operator=(List&& other) noexcept {
@@ -182,6 +194,7 @@ namespace mLib {
                     other.size = tempSize;
                     other.autoShrink = tempAutoShrink;
                 }
+                DEBUG_LOG(this, "List move-assigned from obj: " << &other);
                 return *this;
             }
             void reserve(int newCapacity) {
@@ -189,6 +202,7 @@ namespace mLib {
                     reSize(newCapacity, true);
                 }
                 autoShrink = false;
+                DEBUG_LOG(this, "Reserving capacity manually to: " << newCapacity);
             }
             T& operator[](int index) { // BigO(1)
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
@@ -205,6 +219,7 @@ namespace mLib {
                 add(size, static_cast<T&&>(value));
             }
             void add(int index, const T& value) { // BigO(n)
+                DEBUG_LOG(this, "Adding L-Value at index: " << index);
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (size == capacity) {
                     reSize(capacity * 2, true);
@@ -223,6 +238,7 @@ namespace mLib {
                 size++;
             }
             void add(int index, T&& value) { // BigO(n)
+                DEBUG_LOG(this, "Adding R-Value (Move) at index: " << index);
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (size == capacity) {
                     reSize(capacity * 2, true);
@@ -253,18 +269,21 @@ namespace mLib {
                 return -1;
             }
             void set(int index, T&& value) { // BigO(1)
+                DEBUG_LOG(this, "Setting R-Value (Move) at index: " << index);
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else {
                     array[index] = static_cast<T&&>(value);
                 }
             }
             void set(int index, const T& value) { // BigO(1)
+                DEBUG_LOG(this, "Setting L-Value at index: " << index);
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else {
                     array[index] = value;
                 }
             }
             void shuffle() {
+                DEBUG_LOG(this, "Shuffling the list.");
                 if (isEmpty() || size == 1) { // BigO(n)
                     return;
                 }
@@ -277,6 +296,7 @@ namespace mLib {
                 }
             }
             void swap(int index1, int index2) { // BigO(1)
+                DEBUG_LOG(this, "Swapping elements at indices: " << index1 << " & " << index2);
                 if (index1 < 0 || index1 >= size || index2 < 0 || index2 >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (index1 == index2) { return; }
                 else {
@@ -286,6 +306,7 @@ namespace mLib {
                 }
             }
             T remove() {
+                DEBUG_LOG(this, "Removing element from end (pop_back). Target index: " << size - 1);
                 if (size == 0) {
                     throw std::out_of_range("List is empty.");
                 }
@@ -300,6 +321,7 @@ namespace mLib {
                 }
             }
             T remove(int index) { // BigO(n)
+                DEBUG_LOG(this, "Removing element at index: " << index);
                 if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else {
                     T temp = static_cast<T&&>(array[index]);
@@ -315,6 +337,7 @@ namespace mLib {
                 }
             }
             void sort() {
+                DEBUG_LOG(this, "Sorting the list (TODO).");
                 // @TODO: WRITE ME!!! (MERGE SORT OR QUICK SORT)
             }
             T& front() { // BigO(1)
@@ -350,6 +373,7 @@ namespace mLib {
                 }
             }
             void clear() {
+                DEBUG_LOG(this, "Clearing list contents.");
                 for (int i = 0; i < size; i++) {
                     array[i].~T();
                 }
@@ -364,10 +388,11 @@ namespace mLib {
             bool isEmpty() const { return size == 0; }
             int getCapacity() const { return capacity; }
             bool infoAutoShrink() const { return autoShrink; }
-            void setAutoShrink(bool autoShrink) { this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
+            void setAutoShrink(bool autoShrink) { DEBUG_LOG(this, "AutoShrink modified to: " << autoShrink); this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
         };
         template<typename T>
         std::ostream& operator<<(std::ostream& os, const List<T>& list) {
+            DEBUG_LOG(&list, "Running List << operator");
             if (list.getSize() == 0) {
                 os << "EMPTY";
             }
@@ -519,7 +544,6 @@ namespace mLib {
             // @TODO: WRITE ME!!! (SLL)
         };
     }
-    // @TODO: insertAt functions will be added
     namespace LinkedList {
         template<typename T>
         class Dll {
@@ -528,27 +552,14 @@ namespace mLib {
                 T value;
                 Node* next;
                 Node* prev;
-                Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
+                Node(const T& value) noexcept : value(value), next(nullptr), prev(nullptr) {}
 
-                Node(Node&& other) noexcept : value(static_cast<T&&>(other.value)), next(nullptr), prev(nullptr) {
-                    other.next = nullptr;
-                    other.prev = nullptr;
-                }
-                Node(const Node& other) : value(other.value), next(nullptr), prev(nullptr) {
-                    // Empty
-                }
-                Node& operator=(Node&& other) noexcept { // BigO(1)
-                    if (this != &other) {
-                        value = static_cast<T&&>(other.value);
-                    }
-                    return *this;
-                }
-                Node& operator=(const Node& other) noexcept { // BigO(1)
-                    if (this != &other) {
-                        value = other.value;
-                    }
-                    return *this;
-                }
+                Node(T&& value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
+
+                Node(Node&& other) delete;
+                Node(const Node& other) = delete;
+                Node& operator=(Node&& other) = delete;
+                Node& operator=(const Node& other) = delete;
             };
             Node* head;
             Node* tail;
@@ -570,7 +581,7 @@ namespace mLib {
             Dll() : head(nullptr), tail(nullptr), size(0) {}
             bool isEmpty() const { return size == 0; }
             int getSize() const { return size; }
-            void addFirst(T& value) { // BigO(1)
+            void addFirst(const T& value) { // BigO(1)
                 Node* myNode = new Node(value);
                 if (size == 0) {
                     head = myNode;
@@ -583,7 +594,20 @@ namespace mLib {
                 }
                 size++;
             }
-            void addLast(T& value) { // BigO(1)
+            void addFirst(T&& value) {
+                Node* myNode = new Node(static_cast<T&&>(value));
+                if (size == 0) {
+                    head = myNode;
+                    tail = myNode;
+                }
+                else {
+                    head->prev = myNode;
+                    myNode->next = head;
+                    head = myNode;
+                }
+                size++;
+            }
+            void addLast(const T& value) { // BigO(1)
                 Node* myNode = new Node(value);
                 if (size == 0) {
                     head = myNode;
@@ -595,6 +619,81 @@ namespace mLib {
                     tail = myNode;
                 }
                 size++;
+            }
+            void addLast(T&& value) { // BigO(1)
+                Node* myNode = new Node(static_cast<T&&>(value));
+                if (size == 0) {
+                    head = myNode;
+                    tail = myNode;
+                }
+                else {
+                    tail->next = myNode;
+                    myNode->prev = tail;
+                    tail = myNode;
+                }
+                size++;
+            }
+            void insertAt(int index, T&& value) {
+                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else if(index == 0){
+                    addFirst(static_cast<T&&>(value));
+                }
+                else if (index == size) {
+                    addLast(static_cast<T&&>(value));
+                }
+                else {
+                    Node* temp = nullptr;
+                    if (index < size / 2) {
+                        temp = head;
+                        for (int i = 0; i < index; i++) {
+                            temp = temp->next;
+                        }
+                    }
+                    else {
+                        temp = tail;
+                        for (int i = size - 1; i > index; i--) {
+                            temp = temp->prev;
+                        }
+                    }
+                    Node* myNode = new Node(static_cast<T&&>(value));
+
+                    myNode->next = temp;
+                    myNode->prev = temp->prev;
+                    myNode->prev->next = myNode;
+                    temp->prev = myNode;
+                    size++;
+                }
+            }
+            void insertAt(int index, const T& value) {
+                if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else if (index == 0) {
+                    addFirst(value);
+                }
+                else if (index == size) {
+                    addLast(value);
+                }
+                else {
+                    Node* temp = nullptr;
+                    if (index < size / 2) {
+                        temp = head;
+                        for (int i = 0; i < index; i++) {
+                            temp = temp->next;
+                        }
+                    }
+                    else {
+                        temp = tail;
+                        for (int i = size - 1; i > index; i--) {
+                            temp = temp->prev;
+                        }
+                    }
+                    Node* myNode = new Node(value);
+
+                    myNode->next = temp;
+                    myNode->prev = temp->prev;
+                    myNode->prev->next = myNode;
+                    temp->prev = myNode;
+                    size++;
+                }
             }
             const T& get(int index) const { // BigO(n)
                 if (isEmpty()) { throw std::out_of_range("List is Empty."); }

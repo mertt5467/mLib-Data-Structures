@@ -1,3 +1,4 @@
+#define DEBUG
 #include "mLib.hpp"
 // @TEST !!! [Hash::LineerHash]
 /*
@@ -54,12 +55,14 @@ void tryList() {
     myVector v4("v4", 34, 21, -4);
     List<myVector> l1 = { v1, v2, v3 };
     l1.add(v4);
+    /*
     if (v1 == v3) {
         std::cout << "true ";
     }
     else {
         std::cout << "false ";
     }
+    */
     std::cout << l1;
 }
 
