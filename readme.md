@@ -20,7 +20,7 @@
 | `mLib::Arrays::Array` (Static Array) | ✅ | Completed. |
 | `mLib::Arrays::List` (Dynamic Array) | 🚧 | Missing only sort method |
 | `mLib::LinkedList::Sll` (Singly Linked List) | 🚧 | In Progress |
-| `mLib::LinkedList::Dll` (Doubly Linked List) | 🚧 | Core logic ready, undergoing refactoring |
+| `mLib::LinkedList::Dll` (Doubly Linked List) | ✅ | Completed. |
 | `mLib::LinkedList::Cll` (Circular Linked List) | ❌ | |
 | `mLib::Hash::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
 | `mLib::Hash::ChainingHash` (Chaining) | ❌ |  |
@@ -70,7 +70,7 @@ To activate the `DEBUG` macro:
 | `mLib::Arrays::Array` (Statik Dizi) | ✅ | Tamamlandı. |
 | `mLib::Arrays::List` (Dinamik Dizi) | 🚧 | Sadece sıralama algoritması eksik. |
 | `mLib::LinkedList::Sll` (Singly Linked List) | 🚧 | Yapım Aşamasında |
-| `mLib::LinkedList::Dll` (Doubly Linked List) | 🚧 | Temel mantık hazır, refactor edilecek |
+| `mLib::LinkedList::Dll` (Doubly Linked List) | ✅ | Completed. |
 | `mLib::LinkedList::Cll` (Circular Linked List) | ❌ | |
 | `mLib::Hash::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::Hash::ChainingHash` (Chaining) | ❌ | |
