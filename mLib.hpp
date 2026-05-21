@@ -23,7 +23,7 @@ namespace mLib {
             int capacity;
             T* array;
         public:
-            Array(int capacity) : capacity(capacity) { // BigO(n)
+            explicit Array(int capacity) : capacity(capacity) { // BigO(n)
                 array = new T[capacity]{};
                 DEBUG_LOG(this, "Array created. Capacity: " << capacity);
             }
@@ -50,7 +50,7 @@ namespace mLib {
                 if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
                 return array[index];
             }
-            Array& operator=(Array&& other) noexcept { // BigO(n)
+            Array& operator=(Array&& other) noexcept { // BigO(1)
                 if (this != &other) {
                     DEBUG_LOG(this, "Array move-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                     delete[] array;
@@ -82,21 +82,20 @@ namespace mLib {
                 }
                 return *this;
             }
-            T* begin() { return array; }
-            T* end() { return array + capacity; }
-            const T* begin() const { return array; }
-            const T* end() const { return array + capacity; }
-            int size() const { return capacity; }
-        };
-        template<typename T>
-        std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
-            DEBUG_LOG(&arr, "Running Array << operator");
-            for (const auto& item : arr) {
-                os << item << " | ";
+            T* begin() noexcept{ return array; }
+            T* end() noexcept{ return array + capacity; }
+            const T* begin() const noexcept{ return array; }
+            const T* end() const noexcept{ return array + capacity; }
+            int size() const noexcept{ return capacity; }
+            friend std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
+                DEBUG_LOG(&arr, "Running Array << operator");
+                for (const auto& item : arr) {
+                    os << item << " | ";
+                }
+                os << "END";
+                return os;
             }
-            os << "END";
-            return os;
-        }
+        };
         template<typename T>
         class List {
         private:
@@ -238,7 +237,7 @@ namespace mLib {
                 DEBUG_LOG(this, "Adding L-Value at index: " << index);
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (size == capacity) {
-                    reSize(capacity * 2, true);
+                    reSize(capacity == 0 ? 1 : capacity * 2, true);
                 }
                 if (index == size) {
                     new (&array[index]) T(value);
@@ -257,7 +256,7 @@ namespace mLib {
                 DEBUG_LOG(this, "Adding R-Value (Move) at index: " << index);
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + to_string(size)); }
                 else if (size == capacity) {
-                    reSize(capacity * 2, true);
+                    reSize(capacity == 0 ? 1 : capacity * 2, true);
                 }
                 if (index == size) {
                     new (&array[index]) T(static_cast<T&&>(value));
@@ -388,38 +387,37 @@ namespace mLib {
                     return array[size - 1];
                 }
             }
-            void clear() {
+            void clear() noexcept{
                 DEBUG_LOG(this, "Clearing list contents.");
                 for (int i = 0; i < size; i++) {
                     array[i].~T();
                 }
                 size = 0;
-                if (autoShrink) { reSize(1, false); }
+                if (autoShrink && capacity > 1) { reSize(1, false); }
             }
-            T* begin() { return array; }
-            T* end() { return array + size; }
-            const T* begin() const { return array; }
-            const T* end() const { return array + size; }
-            int getSize() const { return size; }
-            bool isEmpty() const { return size == 0; }
-            int getCapacity() const { return capacity; }
-            bool infoAutoShrink() const { return autoShrink; }
+            T* begin() noexcept{ return array; }
+            T* end() noexcept { return array + size; }
+            const T* begin() const noexcept { return array; }
+            const T* end() const noexcept { return array + size; }
+            int getSize() const noexcept { return size; }
+            bool isEmpty() const noexcept { return size == 0; }
+            int getCapacity() const noexcept { return capacity; }
+            bool infoAutoShrink() const noexcept { return autoShrink; }
             void setAutoShrink(bool autoShrink) { DEBUG_LOG(this, "AutoShrink modified to: " << autoShrink); this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
-        };
-        template<typename T>
-        std::ostream& operator<<(std::ostream& os, const List<T>& list) {
-            DEBUG_LOG(&list, "Running List << operator");
-            if (list.getSize() == 0) {
-                os << "EMPTY";
-            }
-            else {
-                for (const auto& item : list) {
-                    os << item << " | ";
+            friend std::ostream& operator<<(std::ostream& os, const List<T>& list) {
+                DEBUG_LOG(&list, "Running List << operator");
+                if (list.isEmpty()) {
+                    os << "EMPTY";
                 }
-                os << "END";
+                else {
+                    for (const auto& item : list) {
+                        os << item << " | ";
+                    }
+                    os << "END";
+                }
+                return os;
             }
-            return os;
-        }
+        };
     }
     namespace Hash {
         template<typename T>
@@ -580,23 +578,82 @@ namespace mLib {
             Node* head;
             Node* tail;
             int size;
-            void clear() {
+            void clear() noexcept{
                 Node* temp = head;
                 head = nullptr;
                 tail = nullptr;
+                size = 0;
                 while (temp != nullptr) {
                     Node* next = temp->next;
                     delete temp;
                     temp = next;
                 }
             }
+            Node* getNodeAddress(int index) { // Teoric BigO(n) -> BigO(n/2)
+                Node* temp = nullptr;
+                if (index < size / 2) {
+                    temp = head;
+                    for (int i = 0; i < index; i++) {
+                        temp = temp->next;
+                    }
+                }
+                else {
+                    temp = tail;
+                    for (int i = size - 1; i > index; i--) {
+                        temp = temp->prev;
+                    }
+                }
+                return temp;
+            }
+            const Node* getNodeAddress(int index) const{ // Teoric BigO(n) -> BigO(n/2)
+                return const_cast<Dll*>(this)->getNodeAddress(index);
+            }
         public:
             ~Dll() {
                 clear();
             }
             Dll() : head(nullptr), tail(nullptr), size(0) {}
-            bool isEmpty() const { return size == 0; }
-            int getSize() const { return size; }
+            Dll(const Dll& other) : head(nullptr), tail(nullptr), size(0){
+                Node* temp = other.head;
+                while (temp != nullptr) {
+                    addLast(temp->value);
+                    temp = temp->next;
+                }
+            }
+            Dll(Dll&& other) noexcept : head(other.head), tail(other.tail), size(other.size){
+                other.head = nullptr;
+                other.tail = nullptr;
+                other.size = 0;
+            }
+            Dll& operator=(const Dll& other) {
+                if (this != &other) {
+                    clear();
+                    Node* temp = other.head;
+                    while (temp != nullptr) {
+                        addLast(temp->value);
+                        temp = temp->next;
+                    }
+                }
+                return *this;
+            }
+            Dll& operator=(Dll&& other) noexcept{
+                if (this != &other) {
+                    Node* moveHead = other.head;
+                    Node* moveTail = other.tail;
+                    int moveSize = other.size;
+
+                    other.size = size;
+                    other.head = head;
+                    other.tail = tail;
+
+                    size = moveSize;
+                    head = moveHead;
+                    tail = moveTail;
+                }
+                return *this;
+            }
+            bool isEmpty() const noexcept{ return size == 0; }
+            int getSize() const noexcept{ return size; }
             void addFirst(const T& value) { // BigO(1)
                 Node* myNode = new Node(value);
                 if (size == 0) {
@@ -610,7 +667,7 @@ namespace mLib {
                 }
                 size++;
             }
-            void addFirst(T&& value) {
+            void addFirst(T&& value) { // BigO(1)
                 Node* myNode = new Node(static_cast<T&&>(value));
                 if (size == 0) {
                     head = myNode;
@@ -649,77 +706,48 @@ namespace mLib {
                 }
                 size++;
             }
-            void insertAt(int index, T&& value) {
+            void insertAt(int index, T&& value) { // Teoric BigO(n) -> BigO(n/2)
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 else if(index == 0){
                     addFirst(static_cast<T&&>(value));
+                    return;
                 }
                 else if (index == size) {
                     addLast(static_cast<T&&>(value));
+                    return;
                 }
-                else {
-                    Node* temp = nullptr;
-                    if (index < size / 2) {
-                        temp = head;
-                        for (int i = 0; i < index; i++) {
-                            temp = temp->next;
-                        }
-                    }
-                    else {
-                        temp = tail;
-                        for (int i = size - 1; i > index; i--) {
-                            temp = temp->prev;
-                        }
-                    }
-                    Node* myNode = new Node(static_cast<T&&>(value));
+                Node* temp = getNodeAddress(index);
+                Node* myNode = new Node(static_cast<T&&>(value));
 
-                    myNode->next = temp;
-                    myNode->prev = temp->prev;
-                    myNode->prev->next = myNode;
-                    temp->prev = myNode;
-                    size++;
-                }
+                myNode->next = temp;
+                myNode->prev = temp->prev;
+                myNode->prev->next = myNode;
+                temp->prev = myNode;
+                size++;
             }
-            void insertAt(int index, const T& value) {
+            void insertAt(int index, const T& value) { // Teoric BigO(n) -> BigO(n/2)
                 if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
                 else if (index == 0) {
                     addFirst(value);
+                    return;
                 }
                 else if (index == size) {
                     addLast(value);
+                    return;
                 }
-                else {
-                    Node* temp = nullptr;
-                    if (index < size / 2) {
-                        temp = head;
-                        for (int i = 0; i < index; i++) {
-                            temp = temp->next;
-                        }
-                    }
-                    else {
-                        temp = tail;
-                        for (int i = size - 1; i > index; i--) {
-                            temp = temp->prev;
-                        }
-                    }
-                    Node* myNode = new Node(value);
+                Node* temp = getNodeAddress(index);
+                Node* myNode = new Node(value);
 
-                    myNode->next = temp;
-                    myNode->prev = temp->prev;
-                    myNode->prev->next = myNode;
-                    temp->prev = myNode;
-                    size++;
-                }
+                myNode->next = temp;
+                myNode->prev = temp->prev;
+                myNode->prev->next = myNode;
+                temp->prev = myNode;
+                size++;
             }
-            const T& get(int index) const { // BigO(n)
+            const T& get(int index) const { // Teoric BigO(n) -> (n/2)
                 if (isEmpty()) { throw std::out_of_range("List is Empty."); }
-                else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
-                Node* temp = head;
-                int i = 0;
-                while (temp != nullptr && i < index) {
-                    temp = temp->next;
-                    i++;
-                }
+                if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                const Node* temp = getNodeAddress(index);
                 return temp->value;
             }
             T removeFirst() { // BigO(1)
@@ -755,24 +783,6 @@ namespace mLib {
                 size--;
                 return returnValue;
             }
-            void print() const {
-                if (size == 0) { std::cout << "NULL" << std::endl; return; }
-                Node* temp = head;
-                while (temp != nullptr) {
-                    std::cout << temp->value << " -> ";
-                    temp = temp->next;
-                }
-                std::cout << "TAIL" << std::endl;
-            }
-            void printReverse() const {
-                if (size == 0) { std::cout << "NULL" << std::endl; return; }
-                Node* temp = tail;
-                while (temp != nullptr) {
-                    std::cout << temp->value << " <- ";
-                    temp = temp->prev;
-                }
-                std::cout << "HEAD" << std::endl;
-            }
             int indexOf(const T& target) const { // BigO(n)
                 if (isEmpty()) { throw std::out_of_range("List is Empty."); }
                 Node* temp = head;
@@ -785,42 +795,57 @@ namespace mLib {
                 throw std::out_of_range("Value is not found.");
             }
             T remove(int index) { // BigO(n)
-                Node* target = nullptr;
                 if (isEmpty()) { throw std::out_of_range("List is empty."); }
                 else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
-                else if (head->next == nullptr) {
-                    target = head;
-                    head = nullptr;
-                    tail = nullptr;
-                }
                 else if (index == 0) {
-                    target = head;
-                    head = head->next;
-                    head->prev = nullptr;
+                    return removeFirst();
                 }
-                else {
-                    Node* temp = head;
-                    for (int step = 0; step <= index; step++) {
-                        if (index == step) {
-                            if (temp->next == nullptr) {
-                                target = temp;
-                                temp->prev->next = nullptr;
-                                tail = temp->prev;
-                            }
-                            else {
-                                target = temp;
-                                temp->prev->next = temp->next;
-                                temp->next->prev = temp->prev;
-                            }
-                        }
-                        temp = temp->next;
-                    }
+                else if (index == size - 1) {
+                    return removeLast();
                 }
-                T returnValue = static_cast<T&&>(target->value);
-
-                delete target;
+                Node* temp = getNodeAddress(index);
+                T returnValue = static_cast<T&&>(temp->value);
+                temp->prev->next = temp->next;
+                temp->next->prev = temp->prev;
+                delete temp;
                 size--;
                 return returnValue;
+            }
+            void set(int index, const T& value) { // Teoric BigO(n) -> BigO(n/2)
+                if (isEmpty()) { throw std::out_of_range("List is empty."); }
+                else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                Node* temp = getNodeAddress(index);
+                temp->value = value;
+            }
+            void set(int index, T&& value) { // Teoric BigO(n) -> BigO(n/2)
+                if (isEmpty()) { throw std::out_of_range("List is empty."); }
+                else if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                Node* temp = getNodeAddress(index);
+                temp->value = static_cast<T&&>(value);
+            }
+            void swap(int index1, int index2) { // Teoric BigO(n) -> BigO(n/2)
+                if (isEmpty()) { throw std::out_of_range("List is empty."); }
+                else if (index1 < 0 || index1 >= size || index2 < 0 || index2 >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+                else if (index1 == index2) {
+                    return;
+                }
+                Node* temp1 = getNodeAddress(index1);
+                Node* temp2 = getNodeAddress(index2);
+                T tempValue = static_cast<T&&>(temp1->value);
+                temp1->value = static_cast<T&&>(temp2->value);
+                temp2->value = static_cast<T&&>(tempValue);
+            }
+            friend std::ostream& operator<<(std::ostream& os, const Dll<T>& list) { // BigO(n)
+                if (list.isEmpty()) { os << "NULL"; }
+                else {
+                    Node* temp = list.head;
+                    while (temp != nullptr) {
+                        os << temp->value << " | ";
+                        temp = temp->next;
+                    }
+                    os << "END";
+                }
+                return os;
             }
         };
         template<typename T>
