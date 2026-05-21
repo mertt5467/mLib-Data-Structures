@@ -63,7 +63,7 @@ void tryList() {
         std::cout << "false ";
     }
     */
-    std::cout << l1;
+    std::cout << l1 << std::endl;
 }
 
 int main() {

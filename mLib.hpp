@@ -7,9 +7,11 @@
 #include <initializer_list>
 
 #ifdef DEBUG
-#define DEBUG_LOG(obj_ptr, x) std::cerr << "[DEBUG]" << "obj: " << obj_ptr << " | " <<  x << std::endl
+#define MLIB_COLOR_RED   "\033[31m"
+#define MLIB_COLOR_RESET "\033[0m"
+#define DEBUG_LOG(obj_ptr, x) std::cout << MLIB_COLOR_RED << "[DEBUG]" << "obj: " << obj_ptr << " | " <<  x << MLIB_COLOR_RESET << std::endl
 #else
-#define DEBUG_LOG(obj_ptr, x)
+#define DEBUG_LOG(obj_ptr, x) void(0)
 #endif
 
 
@@ -50,26 +52,34 @@ namespace mLib {
             }
             Array& operator=(Array&& other) noexcept { // BigO(n)
                 if (this != &other) {
+                    DEBUG_LOG(this, "Array move-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                     delete[] array;
                     array = other.array;
                     capacity = other.capacity;
                     other.array = nullptr;
                     other.capacity = 0;
                 }
-                DEBUG_LOG(this, "Array move-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                 return *this;
             }
             Array& operator=(const Array& other) { // BigO(n)
                 if (this != &other) {
+                    int oldCap = capacity;
                     T* newArray = new T[other.capacity];
-                    for (int i = 0; i < other.capacity; i++) {
-                        newArray[i] = other[i];
+                    int i = 0;
+                    try {
+                        for (i = 0; i < other.capacity; i++) {
+                            newArray[i] = other[i];
+                        }
+                    }catch (...) {
+                        DEBUG_LOG(this, "[EXCEPTION] Array copy assignment failed at index: " << i << ". RAII taking over, freeing memory.");
+                        delete[] newArray;
+                        throw;
                     }
                     delete[] array;
                     array = newArray;
                     capacity = other.capacity;
+                    DEBUG_LOG(this, "Array copy-assigned from obj: " << &other << " (Old Cap: " << oldCap << " -> New Cap: " << other.capacity << ")");
                 }
-                DEBUG_LOG(this, "Array copy-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
                 return *this;
             }
             T* begin() { return array; }
@@ -156,12 +166,18 @@ namespace mLib {
 
                     T* newArray = static_cast<T*>(::operator new(other.capacity * sizeof(T)));
 
+                    int catchItemCount = 0;
                     try {
                         for (int i = 0; i < newSize; i++) {
                             new (&newArray[i]) T(other[i]);
+                            catchItemCount++;
                         }
                     }
                     catch (...) {
+                        DEBUG_LOG(this, "[EXCEPTION] Copying failed at index: " << catchItemCount << ". Rolling back and destroying " << catchItemCount << " constructed elements.");
+                        for (int i = 0; i < catchItemCount; i++) {
+                            newArray[i].~T();
+                        }
                         ::operator delete(newArray);
                         throw;
                     }
@@ -173,8 +189,8 @@ namespace mLib {
                     capacity = newCap;
                     size = newSize;
                     autoShrink = newShrink;
+                    DEBUG_LOG(this, "List copy-assigned from obj: " << &other);
                 }
-                DEBUG_LOG(this, "List copy-assigned from obj: " << &other);
                 return *this;
             }
             List& operator=(List&& other) noexcept {
@@ -556,7 +572,7 @@ namespace mLib {
 
                 Node(T&& value) noexcept : value(static_cast<T&&>(value)), next(nullptr), prev(nullptr) {}
 
-                Node(Node&& other) delete;
+                Node(Node&& other) = delete;
                 Node(const Node& other) = delete;
                 Node& operator=(Node&& other) = delete;
                 Node& operator=(const Node& other) = delete;
@@ -857,7 +873,7 @@ namespace mLib {
             ~Sll() {
                 clear();
             }
-            // @TODO: WRITE ME!!! (DLL)
+            // @TODO: WRITE ME!!! (SLL)
         };
     }
 }
