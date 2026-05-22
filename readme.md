@@ -70,7 +70,7 @@ To activate the `DEBUG` macro:
 | `mLib::Arrays::Array` (Statik Dizi) | ✅ | Tamamlandı. |
 | `mLib::Arrays::List` (Dinamik Dizi) | 🚧 | Sadece sıralama algoritması eksik. |
 | `mLib::LinkedList::Sll` (Singly Linked List) | 🚧 | Yapım Aşamasında |
-| `mLib::LinkedList::Dll` (Doubly Linked List) | ✅ | Completed. |
+| `mLib::LinkedList::Dll` (Doubly Linked List) | ✅ | Tamamlandı. |
 | `mLib::LinkedList::Cll` (Circular Linked List) | ❌ | |
 | `mLib::Hash::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::Hash::ChainingHash` (Chaining) | ❌ | |

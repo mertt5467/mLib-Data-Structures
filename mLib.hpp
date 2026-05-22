@@ -86,7 +86,7 @@ namespace mLib {
             T* end() noexcept{ return array + capacity; }
             const T* begin() const noexcept{ return array; }
             const T* end() const noexcept{ return array + capacity; }
-            int size() const noexcept{ return capacity; }
+            int length() const noexcept{ return capacity; }
             friend std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
                 DEBUG_LOG(&arr, "Running Array << operator");
                 for (const auto& item : arr) {
@@ -401,7 +401,7 @@ namespace mLib {
             const T* end() const noexcept { return array + size; }
             int getSize() const noexcept { return size; }
             bool isEmpty() const noexcept { return size == 0; }
-            int getCapacity() const noexcept { return capacity; }
+            int getCapacity() const noexcept{ return capacity; }
             bool infoAutoShrink() const noexcept { return autoShrink; }
             void setAutoShrink(bool autoShrink) { DEBUG_LOG(this, "AutoShrink modified to: " << autoShrink); this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
             friend std::ostream& operator<<(std::ostream& os, const List<T>& list) {
@@ -792,7 +792,7 @@ namespace mLib {
                     }
                     temp = temp->next;
                 }
-                throw std::out_of_range("Value is not found.");
+                return -1;
             }
             T remove(int index) { // BigO(n)
                 if (isEmpty()) { throw std::out_of_range("List is empty."); }
@@ -855,33 +855,21 @@ namespace mLib {
                 T value;
                 Node* next;
 
-                Node(T value) noexcept : value(static_cast<T&&>(value)), next(nullptr) {}
+                Node(const T& value) noexcept : value(value), next(nullptr) {}
 
-                Node(Node&& other) noexcept : value(static_cast<T&&>(other.value)), next(nullptr) {
-                    other.next = nullptr;
-                }
+                Node(T&& value) noexcept : value(static_cast<T&&>(value)), next(nullptr) {}
 
-                Node(Node& other) : value(other.value), next(nullptr) {
-                    // Empty
-                }
+                Node(Node&& other) = delete;
 
-                Node& operator=(Node&& other) noexcept { // BigO(1)
-                    if (this != &other) {
-                        value = static_cast<T&&>(other.value);
-                    }
-                    return *this;
-                }
+                Node(Node& other) = delete;
 
-                Node& operator=(const Node& other) noexcept { // BigO(1)
-                    if (this != &other) {
-                        value = other.value;
-                    }
-                    return *this;
-                }
+                Node& operator=(Node&& other) = delete;
+
+                Node& operator=(const Node& other) = delete;
             };
             Node* head;
             int size;
-            void clear() {
+            void clear() noexcept{
                 Node* temp = head;
                 head = nullptr;
                 while (temp != nullptr) {
@@ -891,12 +879,96 @@ namespace mLib {
 
                 }
             }
+            Node* getNodeAddress(int index) {
+                Node* temp = head;
+                for (int i = 0; i < index; i++) {
+                    temp = temp->next;
+                }
+                return temp;
+            }
+            const Node* getNodeAddress(int index) const{
+                return const_cast<Sll*>(this)->getNodeAddress(index);
+            }
         public:
             Sll() : head(nullptr), size(0) {}
+            Sll(const Sll& other) : head(nullptr), size(0){ // BigO(n)
+                try {
+                    if (other.isEmpty()) { return; }
+                    Node* temp1 = other.head;
+                    Node* temp2 = new Node(temp1->value);
+                    temp1 = temp1->next;
+                    head = temp2;
+                    size++;
+                    while (temp1 != nullptr) {
+                        temp2->next = new Node(temp1->value);
+                        temp1 = temp1->next;
+                        temp2 = temp2->next;
+                        size++;
+                    }
+                }catch (...) {
+                    clear();
+                    throw;
+                }
+            }
+            Sll(Sll&& other) noexcept : head(other.head), size(other.size) { // BigO(1)
+                other.head = nullptr;
+                other.size = 0;
+            }
+            Sll& operator=(const Sll& other) { // BigO(n)
+                if (this != &other) {
+                    Sll temp(other);
+                    clear();
+                    head = temp.head;
+                    size = temp.size;
+                    temp.head = nullptr;
+                    temp.size = 0;
+                }
+                return *this;
+            }
+            Sll& operator=(Sll&& other) noexcept { // BigO(1)
+                if (this != &other) {
+                    clear();
+                    head = other.head;
+                    size = other.size;
+                    other.head = nullptr;
+                    other.size = 0;
+                }
+                return *this;
+            }
             bool isEmpty() const { return size == 0; }
             int getSize() const { return size; }
             ~Sll() {
                 clear();
+            }
+            void addLast(const T& value) { // BigO(n)
+                if (isEmpty()) {
+                    head = new Node(value);
+                }else {
+                    Node* temp = getNodeAddress(size-1);
+                    temp->next = new Node(value);
+                }
+                size++;
+            }
+            void addLast(T&& value) { // BigO(n)
+                if (isEmpty()) {
+                    head = new Node(static_cast<T&&>(value));
+                }else {
+                    Node* temp = getNodeAddress(size-1);
+                    temp->next = new Node(static_cast<T&&>(value));
+                }
+                size++;
+            }
+            void addFirst(const T& value) { // BigO(1)
+                Node* temp = new Node(value);
+                temp->next = head;
+                head = temp;
+                size++;
+            }
+            void addFirst(T&& value) { // BigO(1)
+                Node* temp = new Node(static_cast<T&&>(value));
+                temp->next = head;
+                head = temp;
+                size++;
             }
             // @TODO: WRITE ME!!! (SLL)
         };
