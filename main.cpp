@@ -7,13 +7,24 @@ struct myVector {
     int x;
     int y;
     int z;
-    myVector(){}
+    myVector() : name("vx"), x(0), y(0), z(0) {}
     myVector(string name, int x, int y, int z) : name(name), x(x), y(y), z(z) {}
     bool operator==(const myVector& other) const{
         return (this->x == other.x) && (this->y == other.y) && (this->z == other.z);
     }
     bool operator!=(const myVector& other) const {
         return !(*this == other);
+    }
+    myVector& operator++() {
+        x *= 2;
+        y *= 2;
+        z *= 2;
+        return *this;
+    }
+    myVector operator++(int) {
+        myVector prev = *this;
+        ++(*this);
+        return prev;
     }
     friend std::ostream& operator<<(std::ostream& os, const myVector& vector) {
         os << vector.name << " -> [" << vector.x << ", " << vector.y << ", " << vector.z << "]";
@@ -68,9 +79,7 @@ void tryDll() {
     myVector v7("v7", 24, 67, 21);
     myVector v8("v8", 32, 41, -2);
     myVector v9("v9", 100, 86, -28);
-    Dll<myVector> dll1;
-    dll1.addFirst(v3);
-    dll1.addFirst(v2);
+    Dll<myVector> dll1 = { v2, v3 };
     dll1.addFirst(v1);
     dll1.addLast(v4);
     dll1.addLast(v6);
@@ -84,8 +93,11 @@ void tryDll() {
     dll1.addLast(v8);
     dll1.addLast(v9);
     dll1.addLast(myVector("v10", 23, 34, 1));
-    dll1.insertAt(dll1.indexOf(v8),v7);
-    std::cout << dll1 << std::endl;
+    dll1.insert(dll1.indexOf(v8),v7);
+    // std::cout << dll1 << std::endl;
+    for (auto& item : dll1) {
+        std::cout << item++ << std::endl;
+    }
 }
 int main() {
     tryDll();
