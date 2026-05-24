@@ -1,4 +1,5 @@
 #define DEBUG
+#include <iostream>
 #include "mLib.hpp"
 
 using std::string;
@@ -31,9 +32,9 @@ struct myVector {
         return os;
     }
 };
-// @TEST !!! [Hash::LineerHash] (@REFACTOR)
-using mLib::Hash::LineerHash;
-using mLib::Hash::Entry;
+// @TEST !!! [mLib::LineerHash] (@DEPRECATED)
+using mLib::LineerHash;
+using mLib::Entry;
 void tryLineerHash() {
     LineerHash<std::string>* h1 = new LineerHash<std::string>(10);
     h1->put(Entry<std::string>(4, "Ali Demir"));
@@ -56,19 +57,51 @@ void tryLineerHash() {
         std::cout << e.what() << std::endl;
     }
 }
-// @TEST !!! [Arrays::List]
-using mLib::Arrays::List;
+// @TEST !!! [mLib::List]
+using mLib::List;
 void tryList() {
     myVector v1("v1", 20, -29, 50);
-    myVector v2("v2", 20, -29, 50);
+    myVector v2("v2", 23, -29, 50);
     myVector v3("v3", 25, 95, 28);
     myVector v4("v4", 34, 21, -4);
-    List<myVector> l1 = { v1, v2, v3 };
-    l1.add(v4);
-    std::cout << l1 << std::endl;
+    myVector v5("v5", 100, 86, -28);
+    myVector v6("v6", 76, 3, -9);
+    myVector v7("v7", 24, 67, 21);
+    myVector v8("v8", 32, 41, -2);
+    myVector v9("v9", 256, 216, -238);
+    myVector v10("v10", 132, 16, -38);
+    List<myVector> l1;
+    l1.add(v1);
+    l1.add(std::move(v2));
+    l1.add(std::move(v3));
+    l1.add(std::move(v4));
+    l1.add(std::move(v5));
+    l1.add(v7);
+    l1.add(v6);
+    l1.swap(l1.indexOf(v7), l1.indexOf(v6));
+    l1.add(v9);
+    l1.set(l1.indexOf(v9), v8);
+    l1.add(v10);
+    l1.add(l1.indexOf(v10), v9);
+    l1.add(myVector("v11", 32, 41, 01));
+    for (auto& vector : l1) {
+        std::cout << vector << std::endl;
+    }
+    std::cout << "-----" << std::endl;
+    l1.clear();
+    l1.add(v1);
+    l1.add(v10);
+    l1.add(v7);
+    l1.shuffle();
+    for (auto& vector : l1) {
+        std::cout << vector << std::endl;
+    }
+    std::cout << l1.get(2) << std::endl;
+    l1.add(v9);
+    std::cout << l1.getRandom() << std::endl;
 }
-// @TEST !!! [LinkedList::Dll]
-using mLib::LinkedList::Dll;
+// @TEST !!! [mLib::Dll]
+using mLib::Dll;
 void tryDll() {
     myVector v1("v1", 20, -29, 50);
     myVector v2("v2", 20, -29, 50);
@@ -100,6 +133,6 @@ void tryDll() {
     }
 }
 int main() {
-    tryDll();
+    tryList();
     return 0;
 }

@@ -3,4 +3,4 @@ project(Data-Structures)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(DataStructures main.cpp  "mLib.hpp")
+add_executable(DataStructures "main.cpp"  "mLib.hpp")
