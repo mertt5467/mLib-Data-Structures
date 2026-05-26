@@ -253,6 +253,13 @@ namespace mLib {
             }
             return -1;
         }
+        void sort() { // @REFACTOR
+            mLib::bubbleSort(*this);
+        }
+        template<typename Compare>
+        void sort(Compare comp) {
+            mLib::bubbleSort(*this, comp);
+        }
         class Iterator {
         private:
             Node* current;

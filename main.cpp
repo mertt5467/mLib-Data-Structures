@@ -32,6 +32,31 @@ struct myVector {
         return os;
     }
 };
+struct myObj {
+    string name;
+    int value;
+    
+    myObj() : name(""), value(0) {}
+
+    myObj(string name, int value) : name(name), value(value) {}
+
+    bool operator>(const myObj& other) const noexcept{
+        return (this->value) > (other.value);
+    }
+    bool operator==(const myObj& other) const noexcept {
+        return (this->value) == (other.value);
+    }
+    bool operator<(const myObj& other) const noexcept {
+        return (this->value) < (other.value);
+    }
+    friend std::ostream& operator<<(std::ostream& os, const myObj& put) {
+        os << "[ ";
+        if (put.name == "") { os << "NULL"; }
+        else { os << put.name << " - " << put.value << "$"; }
+        os << " ]";
+        return os;
+    }
+};
 // @TEST !!! [mLib::LineerHash] (@DEPRECATED)
 using mLib::LineerHash;
 using mLib::Entry;
@@ -55,6 +80,30 @@ void tryLineerHash() {
     }
     catch (std::out_of_range& e) {
         std::cout << e.what() << std::endl;
+    }
+}
+// @TEST !!! [mLib::Array]
+void tryArray() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    mLib::Array<myObj> a1(10);
+    try {
+        a1[0] = o1;
+        a1[1] = o2;
+        a1[2] = o3;
+        a1[3] = o4;
+        a1[4] = o5;
+        a1[5] = o6;
+    }
+    catch(std::exception& e){
+        std::cout << e.what() << std::endl;
+    }
+    for (auto& item : a1) {
+        std::cout << item << std::endl;
     }
 }
 // @TEST !!! [mLib::List]
@@ -87,18 +136,37 @@ void tryList() {
     for (auto& vector : l1) {
         std::cout << vector << std::endl;
     }
-    std::cout << "-----" << std::endl;
-    l1.clear();
-    l1.add(v1);
-    l1.add(v10);
-    l1.add(v7);
-    l1.shuffle();
-    for (auto& vector : l1) {
-        std::cout << vector << std::endl;
-    }
-    std::cout << l1.get(2) << std::endl;
-    l1.add(v9);
     std::cout << l1.getRandom() << std::endl;
+}
+void tryList2() {
+    myObj* o1 = new myObj("Apple", 5);
+    myObj* o2 = new myObj("Pear", 10);
+    myObj* o3 = new myObj("Banana", 14);
+    myObj* o4 = new myObj("Avocado", 25);
+    myObj* o5 = new myObj("Tomato", 8);
+    myObj* o6 = new myObj("Watermelon", 30);
+    mLib::List<myObj*> l1;
+    l1.add(o1);
+    l1.add(o2);
+    l1.add(o3);
+    l1.add(o4);
+    l1.add(o5);
+    l1.add(o6);
+    for (auto& item : l1) {
+        std::cout << item << std::endl;
+    }
+    for (auto& item : l1) {
+        std::cout << *item << std::endl;
+    }
+    l1.sort([](myObj* a, myObj* b) {
+        return *a < *b;
+    });
+    for (auto& item : l1) {
+        std::cout << item << std::endl;
+    }
+    for (auto& item : l1) {
+        std::cout << *item << std::endl;
+    }
 }
 // @TEST !!! [mLib::Dll]
 using mLib::Dll;
@@ -132,7 +200,61 @@ void tryDll() {
         std::cout << item++ << std::endl;
     }
 }
+void tryDll2() {
+    myObj* o1 = new myObj("Apple", 5);
+    myObj* o2 = new myObj("Pear", 10);
+    myObj* o3 = new myObj("Banana", 14);
+    myObj* o4 = new myObj("Avocado", 25);
+    myObj* o5 = new myObj("Tomato", 8);
+    myObj* o6 = new myObj("Watermelon", 30);
+    mLib::Dll<myObj*> d1;
+    d1.addFirst(o1);
+    d1.addFirst(o2);
+    d1.addFirst(o3);
+    d1.addFirst(o4);
+    d1.addFirst(o5);
+    d1.addFirst(o6);
+    for (auto& item : d1) {
+        std::cout << *item << std::endl;
+    }
+    d1.sort([](auto* a, auto* b) {
+        return *a > *b;
+    });
+    std::cout << " ------ " << std::endl;
+    for (auto& item : d1) {
+        std::cout << *item << std::endl;
+    }
+    for (auto& item : d1) {
+        delete item;
+    }
+}
+// @TEST !!! [mLib::Sll]
+void trySll() {
+    myObj* o1 = new myObj("Apple", 5);
+    myObj* o2 = new myObj("Pear", 10);
+    myObj* o3 = new myObj("Banana", 14);
+    myObj* o4 = new myObj("Avocado", 25);
+    myObj* o5 = new myObj("Tomato", 8);
+    myObj* o6 = new myObj("Watermelon", 30);
+    mLib::Sll<myObj*> s1;
+    s1.addFirst(o1);
+    s1.addFirst(o2);
+    s1.addFirst(o3);
+    s1.addLast(o4);
+    s1.addFirst(o5);
+    s1.addFirst(o6);
+    for (auto& item : s1) {
+        std::cout << *item << std::endl;
+    }
+    std::cout << " ----- " << std::endl;
+    s1.sort([](auto* a, auto* b) {
+        return *a < *b;
+    });
+    for (auto& item : s1) {
+        std::cout << *item << std::endl;
+    }
+}
 int main() {
-    tryList();
+    tryArray();
     return 0;
 }

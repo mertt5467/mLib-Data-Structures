@@ -75,7 +75,7 @@ namespace mLib {
         T* end() noexcept { return array + capacity; }
         const T* begin() const noexcept { return array; }
         const T* end() const noexcept { return array + capacity; }
-        int length() const noexcept { return capacity; }
+        int getSize() const noexcept { return capacity; }
         friend std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
             DEBUG_LOG(&arr, "Running Array << operator");
             for (const auto& item : arr) {

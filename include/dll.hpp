@@ -26,17 +26,6 @@ namespace mLib {
         Node* head;
         Node* tail;
         int size;
-        void clear() noexcept { // BigO(n)
-            Node* temp = head;
-            head = nullptr;
-            tail = nullptr;
-            size = 0;
-            while (temp != nullptr) {
-                Node* next = temp->next;
-                delete temp;
-                temp = next;
-            }
-        }
         Node* getNodeAddress(int index) { // Teoric BigO(n) -> BigO(n/2)
             Node* temp = nullptr;
             if (index < size / 2) {
@@ -297,6 +286,24 @@ namespace mLib {
             T tempValue = static_cast<T&&>(temp1->value);
             temp1->value = static_cast<T&&>(temp2->value);
             temp2->value = static_cast<T&&>(tempValue);
+        }
+        void sort() { // @REFACTOR
+            mLib::bubbleSort(*this);
+        }
+        template<typename Compare>
+        void sort(Compare comp) {
+            mLib::bubbleSort(*this, comp);
+        }
+        void clear() noexcept { // BigO(n)
+            Node* temp = head;
+            head = nullptr;
+            tail = nullptr;
+            size = 0;
+            while (temp != nullptr) {
+                Node* next = temp->next;
+                delete temp;
+                temp = next;
+            }
         }
         class Iterator {
         private:

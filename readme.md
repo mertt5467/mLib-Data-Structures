@@ -18,10 +18,10 @@
 | Structure / Module | Status | Description |
 | :--- | :---: | :--- |
 | `mLib::Array` (Static Array) | ✅ | Completed. |
-| `mLib::List` (Dynamic Array) | 🚧 | Missing only sort method |
-| `mLib::Sll` (Singly Linked List) | 🚧 | In Progress |
+| `mLib::List` (Dynamic Array) | ✅ | Completed. |
+| `mLib::Sll` (Singly Linked List) | ✅ | Completed. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Completed. |
-| `mLib::Cll` (Circular Linked List) | ❌ | |
+| `mLib::Cll` (Circular Linked List) | 🚧 | In Progress |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Stack` | ❌ | |
@@ -36,7 +36,7 @@
 
 | Algorithm Group | Status | Planned Content / Methods |
 | :--- | :---: | :--- |
-| **Sorting (Sort)** | ❌ | Merge Sort, Quick Sort, Bubble/Insertion/Selection Sort |
+| mLib::(...)Sort | 🚧 | The bubble sort algorithm is complete. Other sorting algorithms will be added later. |
 | **Searching (Search)** | ❌ | Binary Search, Linear Search |
 
 ---
@@ -68,10 +68,10 @@ To activate the `DEBUG` macro:
 | Yapı / Modül | Durum | Açıklama |
 | :--- | :---: | :--- |
 | `mLib::Array` (Statik Dizi) | ✅ | Tamamlandı. |
-| `mLib::List` (Dinamik Dizi) | 🚧 | Sadece sıralama algoritması eksik. |
-| `mLib::Sll` (Singly Linked List) | 🚧 | Yapım Aşamasında |
+| `mLib::List` (Dinamik Dizi) | ✅ | Tamamlandı. |
+| `mLib::Sll` (Singly Linked List) | ✅ | Tamamlandı. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Tamamlandı. |
-| `mLib::Cll` (Circular Linked List) | ❌ | |
+| `mLib::Cll` (Circular Linked List) | 🚧 | Yapım Aşamasında |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Stack` | ❌ | |
@@ -86,7 +86,7 @@ To activate the `DEBUG` macro:
 
 | Algoritma Grubu | Durum | Planlanan İçerik / Metotlar |
 | :--- | :---: | :--- |
-| **Sıralama (Sort)** | ❌ | Merge Sort, Quick Sort, Bubble/Insertion/Selection |
+| mLib::(...)Sort | 🚧 | Bubble Sort algoritması tamamlandı. Diğer sıralama algoritmaları daha sonra eklenecektir. |
 | **Arama (Search)** | ❌ | Binary Search, Linear Search |
 
 ---

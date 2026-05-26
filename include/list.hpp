@@ -7,6 +7,8 @@
 #include <initializer_list>
 #include "debug.hpp"
 #include "randomUtils.hpp"
+#include "bubbleSort.hpp"
+
 namespace mLib {
     template<typename T>
     class List {
@@ -293,9 +295,14 @@ namespace mLib {
             }
             return temp;
         }
-        void sort() {
-            DEBUG_LOG(this, "Sorting the list (TODO).");
-            // @TODO: WRITE ME!!! (MERGE SORT OR QUICK SORT)
+        void sort() { // @REFACTOR
+            DEBUG_LOG(this, "List is sorting...");
+            mLib::bubbleSort(*this);
+        }
+        template<typename Compare>
+        void sort(Compare comp) {
+            DEBUG_LOG(this, "List is custom sorting...");
+            mLib::bubbleSort(*this, comp);
         }
         T& front() { // BigO(1)
             checkEmpty();
