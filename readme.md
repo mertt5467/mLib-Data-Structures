@@ -21,7 +21,7 @@
 | `mLib::List` (Dynamic Array) | ✅ | Completed. |
 | `mLib::Sll` (Singly Linked List) | ✅ | Completed. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Completed. |
-| `mLib::Cll` (Circular Linked List) | 🚧 | In Progress |
+| `mLib::Cll` (Circular Linked List) | ✅ | Completed. |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Stack` | ❌ | |
@@ -71,7 +71,7 @@ To activate the `DEBUG` macro:
 | `mLib::List` (Dinamik Dizi) | ✅ | Tamamlandı. |
 | `mLib::Sll` (Singly Linked List) | ✅ | Tamamlandı. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Tamamlandı. |
-| `mLib::Cll` (Circular Linked List) | 🚧 | Yapım Aşamasında |
+| `mLib::Cll` (Circular Linked List) | ✅ | Tamamlandı. |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Stack` | ❌ | |

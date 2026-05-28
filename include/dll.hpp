@@ -25,34 +25,34 @@ namespace mLib {
         };
         Node* head;
         Node* tail;
-        int size;
-        Node* getNodeAddress(int index) { // Teoric BigO(n) -> BigO(n/2)
+        size_t size;
+        Node* getNodeAddress(size_t index) { // BigO(n)
             Node* temp = nullptr;
             if (index < size / 2) {
                 temp = head;
-                for (int i = 0; i < index; i++) {
+                for (size_t i = 0; i < index; i++) {
                     temp = temp->next;
                 }
             }
             else {
                 temp = tail;
-                for (int i = size - 1; i > index; i--) {
+                for (size_t i = size - 1; i > index; i--) {
                     temp = temp->prev;
                 }
             }
             return temp;
         }
-        const Node* getNodeAddress(int index) const { // Teoric BigO(n) -> BigO(n/2)
+        const Node* getNodeAddress(size_t index) const { // BigO(n)
             return const_cast<Dll*>(this)->getNodeAddress(index);
         }
         void checkEmpty() const {
             if (isEmpty()) { throw std::out_of_range("List is empty."); }
         }
-        void checkAvailableBounds(int index) const {
-            if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+        void checkAvailableBounds(size_t index) const {
+            if (index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
         }
-        void checkAddBounds(int index) const {
-            if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+        void checkAddBounds(size_t index) const {
+            if (index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
         }
     public:
         ~Dll() {
@@ -104,7 +104,7 @@ namespace mLib {
             return *this;
         }
         bool isEmpty() const noexcept { return size == 0; }
-        int getSize() const noexcept { return size; }
+        size_t getSize() const noexcept { return size; }
         void addFirst(const T& value) { // BigO(1)
             Node* myNode = new Node(value);
             if (size == 0) {
@@ -157,7 +157,7 @@ namespace mLib {
             }
             size++;
         }
-        void insert(int index, T&& value) { // Teoric BigO(n) -> BigO(n/2)
+        void insert(size_t index, T&& value) { // BigO(n)
             if (index == 0) {
                 addFirst(static_cast<T&&>(value));
                 return;
@@ -176,7 +176,7 @@ namespace mLib {
             temp->prev = myNode;
             size++;
         }
-        void insert(int index, const T& value) { // Teoric BigO(n) -> BigO(n/2)
+        void insert(size_t index, const T& value) { // BigO(n)
             if (index == 0) {
                 addFirst(value);
                 return;
@@ -195,7 +195,7 @@ namespace mLib {
             temp->prev = myNode;
             size++;
         }
-        const T& get(int index) const { // Teoric BigO(n) -> (n/2)
+        const T& get(size_t index) const { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index);
             const Node* temp = getNodeAddress(index);
@@ -234,10 +234,10 @@ namespace mLib {
             size--;
             return returnValue;
         }
-        int indexOf(const T& target) const { // BigO(n)
+        long long indexOf(const T& target) const { // BigO(n)
             checkEmpty();
             Node* temp = head;
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 if (temp->value == target) {
                     return i;
                 }
@@ -245,7 +245,7 @@ namespace mLib {
             }
             return -1;
         }
-        T remove(int index) { // BigO(n)
+        T remove(size_t index) { // BigO(n)
             if (index == 0) {
                 return removeFirst();
             }
@@ -262,19 +262,19 @@ namespace mLib {
             size--;
             return returnValue;
         }
-        void set(int index, const T& value) { // Teoric BigO(n) -> BigO(n/2)
+        void set(size_t index, const T& value) { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index);
             Node* temp = getNodeAddress(index);
             temp->value = value;
         }
-        void set(int index, T&& value) { // Teoric BigO(n) -> BigO(n/2)
+        void set(size_t index, T&& value) { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index);
             Node* temp = getNodeAddress(index);
             temp->value = static_cast<T&&>(value);
         }
-        void swap(int index1, int index2) { // Teoric BigO(n) -> BigO(n/2)
+        void swap(size_t index1, size_t index2) { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index1);
             checkAvailableBounds(index2);
@@ -304,6 +304,47 @@ namespace mLib {
                 delete temp;
                 temp = next;
             }
+        }
+        void shuffle() { // BigO(n)
+            if (isEmpty() || size == 1) { return; }
+            std::mt19937& gen = mLib::getGlobalRNG();
+            T** array = new T*[size];
+            T** pin = array;
+            try{
+                for (auto& item : *this) {
+                    *array = &item;
+                    array++;
+                }
+                array -= size;
+                for (size_t i = size - 1; i > 0; --i) {
+                    std::uniform_int_distribution<size_t> distr(0, i);
+                    size_t random = distr(gen);
+                    T move = static_cast<T&&>(*array[random]);
+                    *array[random] = static_cast<T&&>(*array[i]);
+                    *array[i] = static_cast<T&&>(move);
+                }
+            }catch (...) {
+                delete[] pin;
+                throw;
+            }
+            delete[] array;
+        }
+        const T& getRandom(size_t index1, size_t index2) const{ // BigO(n)
+            checkEmpty();
+            checkAvailableBounds(index1);
+            checkAvailableBounds(index2);
+            if (index1 > index2) {
+                throw std::invalid_argument("Invalid range: index1 (" + std::to_string(index1) + ") cannot be greater than index2 (" + std::to_string(index2) + ").");
+            }
+            std::mt19937& gen = mLib::getGlobalRNG();
+            std::uniform_int_distribution<size_t> distr(index1, index2);
+            return getNodeAddress(distr(gen))->value;
+        }
+        const T& getRandom() const { // BigO(n)
+            checkEmpty();
+            std::mt19937& gen = mLib::getGlobalRNG();
+            std::uniform_int_distribution<size_t> distr(0, size - 1);
+            return getNodeAddress(distr(gen))->value;
         }
         class Iterator {
         private:
@@ -432,7 +473,7 @@ namespace mLib {
             if (list.isEmpty()) { os << "NULL"; }
             else {
                 for (const auto& put : list) {
-                    os << put << " | ";
+                    os << put << " <--> ";
                 }
                 os << "END";
             }

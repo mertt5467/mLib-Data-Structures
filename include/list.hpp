@@ -269,7 +269,7 @@ namespace mLib {
                 array[index2] = static_cast<T&&>(temp);
             }
         }
-        T remove() {
+        T remove() { // BigO(1)
             DEBUG_LOG(this, "Removing element from end (pop_back). Target index: " << size - 1);
             checkEmpty();
             T temp = static_cast<T&&>(array[size - 1]);

@@ -253,8 +253,49 @@ void trySll() {
     for (auto& item : s1) {
         std::cout << *item << std::endl;
     }
+    for (auto& item : s1) {
+        delete item;
+    }
+}
+// @TEST !!! [mLib::Cll]
+void tryCll() {
+    myObj* o1 = new myObj("Apple", 5);
+    myObj* o2 = new myObj("Pear", 10);
+    myObj* o3 = new myObj("Banana", 14);
+    myObj* o4 = new myObj("Avocado", 25);
+    myObj* o5 = new myObj("Tomato", 8);
+    myObj* o6 = new myObj("Watermelon", 30);
+    myObj* o7 = new myObj("Stawberry", 28);
+    mLib::Cll<myObj*> c1;
+    c1.addFirst(o1);
+    c1.addFirst(o2);
+    c1.addFirst(o3);
+    c1.addFirst(o4);
+    c1.addLast(o5);
+    c1.insert(o6, 2);
+    c1.addFirst(o7);
+    std::cout << c1 << std::endl;
+    std::cout << "-----" << std::endl;
+    for (const auto& item : c1) {
+        std::cout << *item << std::endl;
+    }
+    c1.shuffle();
+    std::cout << "-----" << std::endl;
+    for (const auto& item : c1) {
+        std::cout << *item << std::endl;
+    }
+    c1.sort([](auto* a, auto* b) {
+        return *a > *b;
+    });
+    std::cout << "-----" << std::endl;
+    for (const auto& item : c1) {
+        std::cout << *item << std::endl;
+    }
+    for (auto& item : c1) {
+        delete item;
+    }
 }
 int main() {
-    tryArray();
+    tryCll();
     return 0;
 }
