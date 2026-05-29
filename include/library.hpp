@@ -7,5 +7,6 @@
 #include "dll.hpp"
 #include "cll.hpp"
 #include "lineerHash.hpp"
-#include "randomUtils.hpp"
+#include "utils.hpp"
 #include "bubbleSort.hpp"
+#include "mergeSort.hpp"

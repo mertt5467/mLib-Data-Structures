@@ -285,7 +285,7 @@ void tryCll() {
         std::cout << *item << std::endl;
     }
     c1.sort([](auto* a, auto* b) {
-        return *a > *b;
+        return *a < *b;
     });
     std::cout << "-----" << std::endl;
     for (const auto& item : c1) {

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <random>
 #include <initializer_list>
+#include "mergeSort.hpp"
 #include "debug.hpp" // @TODO: not used, write once
 namespace mLib {
     template<typename T>
@@ -60,10 +61,8 @@ namespace mLib {
         }
         Dll() : head(nullptr), tail(nullptr), size(0) {}
         Dll(const Dll& other) : head(nullptr), tail(nullptr), size(0) {
-            Node* temp = other.head;
-            while (temp != nullptr) {
-                addLast(temp->value);
-                temp = temp->next;
+            for (const auto& item : other) {
+                addLast(item);
             }
         }
         Dll(Dll&& other) noexcept : head(other.head), tail(other.tail), size(other.size) {
@@ -287,12 +286,12 @@ namespace mLib {
             temp1->value = static_cast<T&&>(temp2->value);
             temp2->value = static_cast<T&&>(tempValue);
         }
-        void sort() { // @REFACTOR
-            mLib::bubbleSort(*this);
+        void sort() { // BigO(n * log(n))
+            mLib::mergeSort(begin(), end());
         }
         template<typename Compare>
-        void sort(Compare comp) {
-            mLib::bubbleSort(*this, comp);
+        void sort(Compare comp) { // BigO(n * log(n))
+            mLib::mergeSort(begin(), end(), comp);
         }
         void clear() noexcept { // BigO(n)
             Node* temp = head;

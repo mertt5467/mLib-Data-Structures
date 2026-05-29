@@ -9,7 +9,7 @@
 
 ## 🗺️ mLib Roadmap & Development Status
 
-*   ✅ **Completed** (Industrial Standard / Fully Optimized)
+*   ✅ **Completed** 
 *   🚧 **In Progress** (Code written, undergoing optimization/refactoring)
 *   ❌ **Not Started**
 
@@ -36,7 +36,7 @@
 
 | Algorithm Group | Status | Planned Content / Methods |
 | :--- | :---: | :--- |
-| mLib::(...)Sort | 🚧 | The bubble sort algorithm is complete. Other sorting algorithms will be added later. |
+| mLib::(...)Sort | 🚧 | Bubble Sort and Merge Sort algorithms complete. Other sorting algorithms will be added later. |
 | **Searching (Search)** | ❌ | Binary Search, Linear Search |
 
 ---
@@ -59,7 +59,7 @@ To activate the `DEBUG` macro:
 
 ## 🗺️ mLib Yol Haritası & Gelişim Durumu
 
-*   ✅ **Tamamlandı** (Endüstriyel Standart / Optimize)
+*   ✅ **Tamamlandı** 
 *   🚧 **Yapım Aşamasında** (Kod yazıldı/yazılıyor, optimizasyon/refactor yapılıyor)
 *   ❌ **Başlanmadı**
 
@@ -86,7 +86,7 @@ To activate the `DEBUG` macro:
 
 | Algoritma Grubu | Durum | Planlanan İçerik / Metotlar |
 | :--- | :---: | :--- |
-| mLib::(...)Sort | 🚧 | Bubble Sort algoritması tamamlandı. Diğer sıralama algoritmaları daha sonra eklenecektir. |
+| mLib::(...)Sort | 🚧 | Bubble Sort ve Merge Sort algoritmaları tamamlandı. Diğer sıralama algoritmaları daha sonra eklenecektir. |
 | **Arama (Search)** | ❌ | Binary Search, Linear Search |
 
 ---

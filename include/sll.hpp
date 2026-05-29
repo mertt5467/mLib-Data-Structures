@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <random>
 #include <initializer_list>
+#include "mergeSort.hpp"
 #include "debug.hpp" // @TODO: not used, write once
 namespace mLib {
     template<typename T>
@@ -269,12 +270,12 @@ namespace mLib {
             }
             return -1;
         }
-        void sort() { // @REFACTOR
-            mLib::bubbleSort(*this);
+        void sort() { // BigO(n * log(n))
+            mLib::mergeSort(begin(), end());
         }
         template<typename Compare>
-        void sort(Compare comp) {
-            mLib::bubbleSort(*this, comp);
+        void sort(Compare comp) { // BigO(n * log(n))
+            mLib::mergeSort(begin(), end(), comp);
         }
         void shuffle() { // BigO(n)
             if (isEmpty() || size == 1) { return; }

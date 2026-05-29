@@ -2,7 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <initializer_list> // not used, write once
+#include <initializer_list>
+#include "mergeSort.hpp"
 #include "debug.hpp" // not used, write once
 
 namespace mLib {
@@ -311,12 +312,12 @@ namespace mLib {
 			}
 			delete[] array;
 		}
-		void sort() { // @REFACTOR
-			mLib::bubbleSort(*this);
+		void sort() { // BigO(n * log(n))
+			mLib::mergeSort(begin(), end());
 		}
 		template <typename Compare>
-		void sort(Compare comp) {
-			mLib::bubbleSort(*this, comp);
+		void sort(Compare comp) { // BigO(n * log(n))
+			mLib::mergeSort(begin(), end(), comp);
 		}
 		void swap(size_t index1, size_t index2) { // BigO(n)
 			checkEmpty();
