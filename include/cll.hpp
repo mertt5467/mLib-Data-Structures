@@ -65,7 +65,7 @@ namespace mLib {
 
 		Cll() : head(nullptr), tail(nullptr), size(0){}
 
-		Cll(const Cll& other) : head(nullptr), tail(nullptr), size(0) {
+		explicit Cll(const Cll& other) : head(nullptr), tail(nullptr), size(0) {
 			try {
 				for (auto& item : other) {
 					addLast(item);

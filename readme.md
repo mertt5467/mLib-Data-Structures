@@ -24,7 +24,7 @@
 | `mLib::Cll` (Circular Linked List) | ✅ | Completed. |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
-| `mLib::Stack` | ❌ | |
+| `mLib::Stack` | ✅ | Completed. |
 | `mLib::Queue` | ❌ | |
 | `mLib::PriorityQueue` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
@@ -74,7 +74,7 @@ To activate the `DEBUG` macro:
 | `mLib::Cll` (Circular Linked List) | ✅ | Tamamlandı. |
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::ChainingHash` (Chaining) | ❌ | |
-| `mLib::Stack` | ❌ | |
+| `mLib::Stack` | ✅ | Tamamlandı. |
 | `mLib::Queue` | ❌ | |
 | `mLib::PriorityQueue` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |

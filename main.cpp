@@ -35,8 +35,6 @@ struct myVector {
 struct myObj {
     string name;
     int value;
-    
-    myObj() : name(""), value(0) {}
 
     myObj(string name, int value) : name(name), value(value) {}
 
@@ -90,7 +88,8 @@ void tryArray() {
     myObj o4("Avocado", 25);
     myObj o5("Tomato", 8);
     myObj o6("Watermelon", 30);
-    mLib::Array<myObj> a1(10);
+    myObj o7("Stawberry", 28);
+    mLib::Array<myObj> a1(10, myObj("", 0));
     try {
         a1[0] = o1;
         a1[1] = o2;
@@ -98,10 +97,14 @@ void tryArray() {
         a1[3] = o4;
         a1[4] = o5;
         a1[5] = o6;
+        a1[6] = o7;
     }
     catch(std::exception& e){
         std::cout << e.what() << std::endl;
     }
+    mLib::mergeSort(a1.begin(), a1.begin() + 7, [](auto& a, auto& b) {
+        return a > b;
+        });
     for (auto& item : a1) {
         std::cout << item << std::endl;
     }
@@ -295,7 +298,33 @@ void tryCll() {
         delete item;
     }
 }
+// @TEST !!! [mLib::Stack]
+void tryStack() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    myObj o7("Stawberry", 28);
+    mLib::Stack<myObj> s1(6);
+    try {
+        s1.push(o1);
+        s1.push(o2);
+        s1.push(o3);
+        s1.push(o4);
+        s1.push(o5);
+        s1.push(o6);
+        s1.push(o7);
+    }
+    catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    std::cout << (s1.peek())<< std::endl;
+    std::cout << std::endl;
+    std::cout << s1 << std::endl;
+}
 int main() {
-    tryCll();
+    tryArray();
     return 0;
 }

@@ -8,16 +8,59 @@
 namespace mLib {
     template<typename T>
     class Array {
-        int capacity;
+    private:
+        size_t capacity;
         T* array;
+
+        inline static void RAII_DESTRUCTOR(Array& trash){
+            if (trash.array != nullptr) {
+                for (size_t i = 0; i < trash.capacity; ++i) {
+                    trash.array[i].~T();
+                }
+                ::operator delete(trash.array);
+            }
+            trash.capacity = 0;
+            trash.array = nullptr;
+        }
     public:
-        explicit Array(int capacity) : capacity(capacity) { // BigO(n)
-            array = new T[capacity]{};
+        explicit Array(size_t capacity) : capacity(capacity) { // BigO(n)
+            if (capacity == 0) { array = nullptr; }
+            else {
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+                for (size_t i = 0; i < capacity; ++i) {
+                    new (&array[i]) T();
+                }
+            }
             DEBUG_LOG(this, "Array created. Capacity: " << capacity);
         }
-        Array(const Array& other) : capacity(other.capacity) { // BigO(n)
-            array = new T[capacity];
-            for (int i = 0; i < capacity; i++) { array[i] = other.array[i]; }
+        Array(size_t capacity, const T& defaultValue) : capacity(capacity) { // BigO(n)
+            if (capacity == 0) { array = nullptr; }
+            else {
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+                for (size_t i = 0; i < capacity; ++i) {
+                    new (&array[i]) T(defaultValue);
+                }
+            }
+            DEBUG_LOG(this, "Array created. Capacity: " << capacity);
+        }
+        Array(std::initializer_list<T> initList) : capacity(initList.size()) { // BigO(n)
+            if (capacity == 0) { array = nullptr; }
+            else {
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+                size_t i = 0;
+                for (const auto& item : initList) {
+                    new (&array[i]) T(item);
+                    i++;
+                }
+            }
+            DEBUG_LOG(this, "Array created. Capacity: " << capacity);
+        }
+        explicit Array(const Array& other) : capacity(other.capacity) { // BigO(n)
+            if (capacity == 0) { array = nullptr; }
+            else {
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+                for (size_t i = 0; i < capacity; i++) { new (&array[i]) T(other.array[i]); }
+            }
             DEBUG_LOG(this, "Array copy-constructed from obj: " << &other << " (Cap: " << capacity << ")");
         }
 
@@ -27,44 +70,48 @@ namespace mLib {
             DEBUG_LOG(this, "Array move-constructed from obj: " << &other << " (Cap: " << capacity << ")");
         }
         ~Array() {
-            delete[] array;
+            RAII_DESTRUCTOR(*this);
             DEBUG_LOG(this, "Array destroyed. Memory freed.");
         }
-        T& operator[](int index) { // BigO(1)
-            if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
+        T& operator[](size_t index) { // BigO(1)
+            if (index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
             return array[index];
         }
-        const T& operator[](int index) const { // BigO(1)
-            if (index < 0 || index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
+        const T& operator[](size_t index) const { // BigO(1)
+            if (index >= capacity) { throw std::out_of_range("Index out of bounds. Capacity = " + std::to_string(capacity)); }
             return array[index];
         }
         Array& operator=(Array&& other) noexcept { // BigO(1)
             if (this != &other) {
                 DEBUG_LOG(this, "Array move-assigned from obj: " << &other << " (Old Cap: " << capacity << " -> New Cap: " << other.capacity << ")");
-                delete[] array;
+                T* moveArray = array;
+                size_t moveCap = capacity;
                 array = other.array;
                 capacity = other.capacity;
-                other.array = nullptr;
-                other.capacity = 0;
+                other.array = moveArray;
+                other.capacity = moveCap;
             }
             return *this;
         }
         Array& operator=(const Array& other) { // BigO(n)
             if (this != &other) {
-                int oldCap = capacity;
-                T* newArray = new T[other.capacity];
-                int i = 0;
+                size_t oldCap = capacity;
+                T* newArray = static_cast<T*>(::operator new (other.capacity * sizeof(T)));
+                size_t i = 0;
                 try {
                     for (i = 0; i < other.capacity; i++) {
-                        newArray[i] = other[i];
+                        new (&newArray[i]) T(other[i]);
                     }
                 }
                 catch (...) {
                     DEBUG_LOG(this, "[EXCEPTION] Array copy assignment failed at index: " << i << ". RAII taking over, freeing memory.");
-                    delete[] newArray;
+                    for (size_t j = 0; j < i; ++j) {
+                        newArray[j].~T();
+                    }
+                    ::operator delete(newArray);
                     throw;
                 }
-                delete[] array;
+                RAII_DESTRUCTOR(*this);
                 array = newArray;
                 capacity = other.capacity;
                 DEBUG_LOG(this, "Array copy-assigned from obj: " << &other << " (Old Cap: " << oldCap << " -> New Cap: " << other.capacity << ")");
@@ -75,7 +122,7 @@ namespace mLib {
         T* end() noexcept { return array + capacity; }
         const T* begin() const noexcept { return array; }
         const T* end() const noexcept { return array + capacity; }
-        int getSize() const noexcept { return capacity; }
+        size_t getSize() const noexcept { return capacity; }
         friend std::ostream& operator<<(std::ostream& os, const Array<T>& arr) {
             DEBUG_LOG(&arr, "Running Array << operator");
             for (const auto& item : arr) {

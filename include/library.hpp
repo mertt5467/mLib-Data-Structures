@@ -6,6 +6,7 @@
 #include "sll.hpp"
 #include "dll.hpp"
 #include "cll.hpp"
+#include "stack.hpp"
 #include "lineerHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"

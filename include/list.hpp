@@ -14,11 +14,11 @@ namespace mLib {
     class List {
     private:
         T* array;
-        int capacity;
-        int size;
+        size_t capacity;
+        size_t size;
         bool autoShrink;
-        List(int capacity, int size, bool autoShrink) : capacity(capacity), size(size), autoShrink(autoShrink) {
-            if (capacity <= 0) { throw std::out_of_range("Capacity cannot be 0 or less than 0."); }
+        List(size_t capacity, size_t size, bool autoShrink) : capacity(capacity), size(size), autoShrink(autoShrink) {
+            if (capacity == 0) { throw std::out_of_range("Capacity cannot be 0."); }
             array = static_cast<T*>(::operator new(capacity * sizeof(T)));
 
             size_t totalBytes = capacity * sizeof(T);
@@ -26,14 +26,14 @@ namespace mLib {
             DEBUG_LOG(this, "List dynamically allocated. Cap = " + std::to_string(capacity) + " | Size = " + std::to_string(size) + " | Shrink mode = " + std::to_string(autoShrink) + " | Total Size = " + std::to_string(totalBytes) + "Byte (" + std::to_string(totalBits) + " bits)");
         }
 
-        void reSize(int targetSize, bool extend) { // BigO(n)
+        void reSize(size_t targetSize, bool extend) { // BigO(n)
             DEBUG_LOG(this, "Running reSize. Target Cap: " << targetSize << " | Extend Mode: " << extend);
             if (capacity == 1 && extend == false) {
                 DEBUG_LOG(this, "Capacity is already 1; no shrink operation executed.");
                 return;
             }
             T* newArray = static_cast<T*>(::operator new(targetSize * sizeof(T)));
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 new (&newArray[i]) T(static_cast<T&&>(array[i]));
                 array[i].~T();
             }
@@ -43,9 +43,9 @@ namespace mLib {
             capacity = targetSize;
             DEBUG_LOG(this, "reSize completed successfully.");
         }
-        void destroyerClear() noexcept {
+        void RAII_DESTRUCTOR() noexcept {
             DEBUG_LOG(this, "Destroying list contents...");
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 array[i].~T();
             }
             size = 0;
@@ -56,21 +56,21 @@ namespace mLib {
         void checkEmpty() const{
             if (isEmpty()) { throw std::out_of_range("List is empty."); }
         }
-        void checkAvailableBounds(int index) const{
-            if (index < 0 || index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+        void checkAvailableBounds(size_t index) const{
+            if (index >= size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
         }
-        void checkAddBounds(int index) const{
-            if (index < 0 || index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
+        void checkAddBounds(size_t index) const{
+            if (index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
         }
     public:
         ~List() {
-            destroyerClear();
+            RAII_DESTRUCTOR();
             DEBUG_LOG(this, "List destroyed. Cleaning up elements and freeing memory.");
         }
         List() : List(1, 0, true) {}
-        explicit List(int startCapacity) : List(startCapacity, 0, true) {}
+        explicit List(size_t startCapacity) : List(startCapacity, 0, true) {}
         explicit List(bool autoShrink) : List(1, 0, autoShrink) {}
-        List(int startCapacity, bool autoShrink) : List(startCapacity, 0, autoShrink) {}
+        List(size_t startCapacity, bool autoShrink) : List(startCapacity, 0, autoShrink) {}
         List(std::initializer_list<T> initList) : List(initList.size() > 0 ? initList.size() : 1, 0, true) {
             for (const auto& item : initList) {
                 add(item);
@@ -91,28 +91,28 @@ namespace mLib {
         }
         List& operator=(const List& other) {
             if (this != &other) {
-                int newCap = other.capacity;
-                int newSize = other.size;
+                size_t newCap = other.capacity;
+                size_t newSize = other.size;
                 bool newShrink = other.autoShrink;
 
                 T* newArray = static_cast<T*>(::operator new(other.capacity * sizeof(T)));
 
-                int catchItemCount = 0;
+                size_t catchItemCount = 0;
                 try {
-                    for (int i = 0; i < newSize; i++) {
+                    for (size_t i = 0; i < newSize; i++) {
                         new (&newArray[i]) T(other[i]);
                         catchItemCount++;
                     }
                 }
                 catch (...) {
                     DEBUG_LOG(this, "[EXCEPTION] Copying failed at index: " << catchItemCount << ". Rolling back and destroying " << catchItemCount << " constructed elements.");
-                    for (int i = 0; i < catchItemCount; i++) {
+                    for (size_t i = 0; i < catchItemCount; i++) {
                         newArray[i].~T();
                     }
                     ::operator delete(newArray);
                     throw;
                 }
-                for (int i = 0; i < size; i++) {
+                for (size_t i = 0; i < size; i++) {
                     array[i].~T();
                 }
                 ::operator delete(array);
@@ -127,8 +127,8 @@ namespace mLib {
         List& operator=(List&& other) noexcept {
             if (this != &other) {
                 T* tempArr = array;
-                int tempCap = capacity;
-                int tempSize = size;
+                size_t tempCap = capacity;
+                size_t tempSize = size;
                 bool tempAutoShrink = autoShrink;
 
                 array = other.array;
@@ -144,18 +144,18 @@ namespace mLib {
             DEBUG_LOG(this, "List move-assigned from obj: " << &other);
             return *this;
         }
-        void reserve(int newCapacity) {
+        void reserve(size_t newCapacity) {
             if (newCapacity > capacity) {
                 reSize(newCapacity, true);
             }
             autoShrink = false;
             DEBUG_LOG(this, "Reserving capacity manually to: " << newCapacity);
         }
-        T& operator[](int index) { // BigO(1)
+        T& operator[](size_t index) { // BigO(1)
             checkAvailableBounds(index);
             return array[index];
         }
-        const T& operator[](int index) const { // BigO(1)
+        const T& operator[](size_t index) const { // BigO(1)
             checkAvailableBounds(index);
             return array[index];
         }
@@ -165,7 +165,7 @@ namespace mLib {
         void add(T&& value) { // (Amortized O(1))
             add(size, static_cast<T&&>(value));
         }
-        void add(int index, const T& value) { // BigO(n)
+        void add(size_t index, const T& value) { // BigO(n)
             DEBUG_LOG(this, "Adding L-Value at index: " << index);
             checkAddBounds(index);
             if (size == capacity) {
@@ -176,7 +176,7 @@ namespace mLib {
             }
             else {
                 new (&array[size]) T(static_cast<T&&>(array[size - 1]));
-                for (int i = size - 1; i > index; i--) {
+                for (size_t i = size - 1; i > index; i--) {
                     array[i] = static_cast<T&&>(array[i - 1]);
                 }
                 array[index] = value;
@@ -184,7 +184,7 @@ namespace mLib {
             }
             size++;
         }
-        void add(int index, T&& value) { // BigO(n)
+        void add(size_t index, T&& value) { // BigO(n)
             DEBUG_LOG(this, "Adding R-Value (Move) at index: " << index);
             checkAddBounds(index);
             if (size == capacity) {
@@ -195,7 +195,7 @@ namespace mLib {
             }
             else {
                 new (&array[size]) T(static_cast<T&&>(array[size - 1]));
-                for (int i = size - 1; i > index; i--) {
+                for (size_t i = size - 1; i > index; i--) {
                     array[i] = static_cast<T&&>(array[i - 1]);
                 }
                 array[index] = static_cast<T&&>(value);
@@ -203,24 +203,24 @@ namespace mLib {
             }
             size++;
         }
-        const T& get(int index) const { // BigO(1)
+        const T& get(size_t index) const { // BigO(1)
             checkAvailableBounds(index);
             return array[index];
         }
-        int indexOf(const T& value) const { // BigO(n)
-            for (int i = 0; i < size; i++) {
+        long long indexOf(const T& value) const { // BigO(n)
+            for (size_t i = 0; i < size; i++) {
                 if (array[i] == value) {
                     return i;
                 }
             }
             return -1;
         }
-        void set(int index, T&& value) { // BigO(1)
+        void set(size_t index, T&& value) { // BigO(1)
             DEBUG_LOG(this, "Setting R-Value (Move) at index: " << index);
             checkAvailableBounds(index);
             array[index] = static_cast<T&&>(value);
         }
-        void set(int index, const T& value) { // BigO(1)
+        void set(size_t index, const T& value) { // BigO(1)
             DEBUG_LOG(this, "Setting L-Value at index: " << index);
             checkAvailableBounds(index);
             array[index] = value;
@@ -232,13 +232,13 @@ namespace mLib {
             }
             std::mt19937& gen = mLib::getGlobalRNG();
 
-            for (int i = size - 1; i > 0; i--) {
-                std::uniform_int_distribution<int> distr(0, i);
-                int randomNumber = distr(gen);
+            for (size_t i = size - 1; i > 0; i--) {
+                std::uniform_int_distribution<size_t> distr(0, i);
+                size_t randomNumber = distr(gen);
                 swap(i, randomNumber);
             }
         }
-        const T& getRandom(int index1, int index2) const{ //BigO(1)
+        const T& getRandom(size_t index1, size_t index2) const{ //BigO(1)
             checkEmpty();
             checkAvailableBounds(index1);
             checkAvailableBounds(index2);
@@ -249,16 +249,16 @@ namespace mLib {
                 return array[index1];
             }
             std::mt19937& gen = mLib::getGlobalRNG();
-            std::uniform_int_distribution<int> distr(index1, index2);
+            std::uniform_int_distribution<size_t> distr(index1, index2);
             return array[distr(gen)];
         }
         const T& getRandom() const{ // BigO(1)
             checkEmpty();
             std::mt19937& gen = mLib::getGlobalRNG();
-            std::uniform_int_distribution<int> distr(0, size-1);
+            std::uniform_int_distribution<size_t> distr(0, size-1);
             return array[distr(gen)];
         }
-        void swap(int index1, int index2) { // BigO(1)
+        void swap(size_t index1, size_t index2) { // BigO(1)
             DEBUG_LOG(this, "Swapping elements at indices: " << index1 << " & " << index2);
             checkAvailableBounds(index1);
             checkAvailableBounds(index2);
@@ -280,12 +280,12 @@ namespace mLib {
             }
             return temp;
         }
-        T remove(int index) { // BigO(n)
+        T remove(size_t index) { // BigO(n)
             DEBUG_LOG(this, "Removing element at index: " << index);
             checkEmpty();
             checkAvailableBounds(index);
             T temp = static_cast<T&&>(array[index]);
-            for (int i = index; i < size - 1; i++) {
+            for (size_t i = index; i < size - 1; i++) {
                 array[i] = static_cast<T&&>(array[i + 1]);
             }
             array[size - 1].~T();
@@ -322,7 +322,7 @@ namespace mLib {
         }
         void clear() { // BigO(n)
             DEBUG_LOG(this, "Clearing list contents...");
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 array[i].~T();
             }
             size = 0;
@@ -332,9 +332,9 @@ namespace mLib {
         T* end() noexcept { return array + size; }
         const T* begin() const noexcept { return array; }
         const T* end() const noexcept { return array + size; }
-        int getSize() const noexcept { return size; }
+        size_t getSize() const noexcept { return size; }
         bool isEmpty() const noexcept { return size == 0; }
-        int getCapacity() const noexcept { return capacity; }
+        size_t getCapacity() const noexcept { return capacity; }
         bool infoAutoShrink() const noexcept { return autoShrink; }
         void setAutoShrink(bool autoShrink) { DEBUG_LOG(this, "AutoShrink modified to: " << autoShrink); this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
         friend std::ostream& operator<<(std::ostream& os, const List<T>& list) {

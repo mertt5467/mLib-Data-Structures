@@ -60,7 +60,7 @@ namespace mLib {
             clear();
         }
         Dll() : head(nullptr), tail(nullptr), size(0) {}
-        Dll(const Dll& other) : head(nullptr), tail(nullptr), size(0) {
+        explicit Dll(const Dll& other) : head(nullptr), tail(nullptr), size(0) {
             for (const auto& item : other) {
                 addLast(item);
             }

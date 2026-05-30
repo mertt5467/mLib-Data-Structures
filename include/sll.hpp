@@ -60,7 +60,7 @@ namespace mLib {
         }
     public:
         Sll() : head(nullptr), size(0) {}
-        Sll(const Sll& other) : head(nullptr), size(0) { // BigO(n)
+        explicit Sll(const Sll& other) : head(nullptr), size(0) { // BigO(n)
             try {
                 if (other.isEmpty()) { return; }
                 Node* temp1 = other.head;
