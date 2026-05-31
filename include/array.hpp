@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <initializer_list> // @TODO: not used, write once
+#include <initializer_list> 
 #include "debug.hpp"
 namespace mLib {
     template<typename T>
@@ -12,23 +12,41 @@ namespace mLib {
         size_t capacity;
         T* array;
 
-        inline static void RAII_DESTRUCTOR(Array& trash){
-            if (trash.array != nullptr) {
-                for (size_t i = 0; i < trash.capacity; ++i) {
-                    trash.array[i].~T();
+        inline void RAII_DESTRUCTOR(){
+            if (array != nullptr) {
+                for (size_t i = 0; i < capacity; ++i) {
+                    array[i].~T();
                 }
-                ::operator delete(trash.array);
+                ::operator delete(array);
             }
-            trash.capacity = 0;
-            trash.array = nullptr;
+            capacity = 0;
+            array = nullptr;
+        }
+        void MEMORY_EXCEPTION_HANDLING(T*& trash, size_t obj_count) {
+            if (obj_count > 0) {
+                for (size_t i = 0; i < obj_count; ++i) {
+                    trash[i].~T();
+                }
+            }
+            if (trash != nullptr) {
+                ::operator delete(trash);
+            }
+            trash = nullptr;
         }
     public:
         explicit Array(size_t capacity) : capacity(capacity) { // BigO(n)
             if (capacity == 0) { array = nullptr; }
             else {
                 array = static_cast<T*>(::operator new(capacity * sizeof(T)));
-                for (size_t i = 0; i < capacity; ++i) {
-                    new (&array[i]) T();
+                size_t i;
+                try {
+                    for (i = 0; i < capacity; ++i) {
+                        new (&array[i]) T();
+                    }
+                }catch(...){
+                    DEBUG_LOG(this, "[EXCEPTION] Array constructor failed at index: " << i << ". RAII taking over, freeing memory.");
+                    MEMORY_EXCEPTION_HANDLING(array, i);
+                    throw;
                 }
             }
             DEBUG_LOG(this, "Array created. Capacity: " << capacity);
@@ -37,8 +55,15 @@ namespace mLib {
             if (capacity == 0) { array = nullptr; }
             else {
                 array = static_cast<T*>(::operator new(capacity * sizeof(T)));
-                for (size_t i = 0; i < capacity; ++i) {
-                    new (&array[i]) T(defaultValue);
+                size_t i;
+                try {
+                    for (i = 0; i < capacity; ++i) {
+                        new (&array[i]) T(defaultValue);
+                    }
+                }catch (...) {
+                    DEBUG_LOG(this, "[EXCEPTION] Array constructor failed at index: " << i << ". RAII taking over, freeing memory.");
+                    MEMORY_EXCEPTION_HANDLING(array, i);
+                    throw;
                 }
             }
             DEBUG_LOG(this, "Array created. Capacity: " << capacity);
@@ -48,9 +73,15 @@ namespace mLib {
             else {
                 array = static_cast<T*>(::operator new(capacity * sizeof(T)));
                 size_t i = 0;
-                for (const auto& item : initList) {
-                    new (&array[i]) T(item);
-                    i++;
+                try {
+                    for (const auto& item : initList) {
+                        new (&array[i]) T(item);
+                        i++;
+                    }
+                }catch (...) {
+                    DEBUG_LOG(this, "[EXCEPTION] Array initializer_list constructor failed at index: " << i << ". RAII taking over, freeing memory.");
+                    MEMORY_EXCEPTION_HANDLING(array, i);
+                    throw;
                 }
             }
             DEBUG_LOG(this, "Array created. Capacity: " << capacity);
@@ -59,7 +90,16 @@ namespace mLib {
             if (capacity == 0) { array = nullptr; }
             else {
                 array = static_cast<T*>(::operator new(capacity * sizeof(T)));
-                for (size_t i = 0; i < capacity; i++) { new (&array[i]) T(other.array[i]); }
+                size_t i;
+                try {
+                    for (i = 0; i < capacity; i++) { new (&array[i]) T(other.array[i]); }
+                }
+                catch (...) {
+                    DEBUG_LOG(this, "[EXCEPTION] Array copy constructor failed at index: " << i << ". RAII taking over, freeing memory.");
+                    MEMORY_EXCEPTION_HANDLING(array, i);
+                    throw;
+                }
+                
             }
             DEBUG_LOG(this, "Array copy-constructed from obj: " << &other << " (Cap: " << capacity << ")");
         }
@@ -70,7 +110,7 @@ namespace mLib {
             DEBUG_LOG(this, "Array move-constructed from obj: " << &other << " (Cap: " << capacity << ")");
         }
         ~Array() {
-            RAII_DESTRUCTOR(*this);
+            RAII_DESTRUCTOR();
             DEBUG_LOG(this, "Array destroyed. Memory freed.");
         }
         T& operator[](size_t index) { // BigO(1)
@@ -105,13 +145,10 @@ namespace mLib {
                 }
                 catch (...) {
                     DEBUG_LOG(this, "[EXCEPTION] Array copy assignment failed at index: " << i << ". RAII taking over, freeing memory.");
-                    for (size_t j = 0; j < i; ++j) {
-                        newArray[j].~T();
-                    }
-                    ::operator delete(newArray);
+                    MEMORY_EXCEPTION_HANDLING(newArray, i);
                     throw;
                 }
-                RAII_DESTRUCTOR(*this);
+                RAII_DESTRUCTOR();
                 array = newArray;
                 capacity = other.capacity;
                 DEBUG_LOG(this, "Array copy-assigned from obj: " << &other << " (Old Cap: " << oldCap << " -> New Cap: " << other.capacity << ")");

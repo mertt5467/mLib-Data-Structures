@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <initializer_list>
 #include "list.hpp"
 
 namespace mLib {
@@ -15,7 +17,7 @@ namespace mLib {
 			if (stack.getSize() == cap) { throw std::overflow_error("Stack overflow: maximum capacity reached. Capacity = " + std::to_string(cap)); }
 		}
 		void checkUnderflow() const{
-			if (stack.getSize() == 0) { throw std::underflow_error("Stack underflow: operation not allowed on an empty stack."); }
+			if (stack.getSize() == 0 or cap == 0) { throw std::underflow_error("Stack underflow: operation not allowed on an empty stack. Capacity = " + std::to_string(cap)); }
 		}
 	public:
 		Stack() : cap(-1){}
@@ -23,12 +25,21 @@ namespace mLib {
 		~Stack() {
 			cap = 0;
 		}
-		Stack(const Stack& other) = delete;
-		Stack(Stack&& other) noexcept: stack(static_cast<List<T>&&>(other.stack)), cap(other.cap) {
+		Stack(const Stack& other) : stack(other.stack), cap(other.cap){}
+		Stack(Stack&& other) noexcept: stack(static_cast<List<T>&&>(other.stack)), cap(other.cap) { // BigO(1)
 			other.cap = 0;
 		}
-		Stack& operator=(const Stack& other) = delete;
-		Stack& operator=(Stack&& other) noexcept{
+		Stack(std::initializer_list<T> initList) : stack(initList), cap(-1) {}
+		Stack& operator=(const Stack& other) {
+			if (this != &other) {
+				Stack<T> temp(other);
+				this->stack = static_cast<List<T>&&>(temp.stack);
+				this->cap = temp.cap;
+				temp.cap = 0;
+			}
+			return *this;
+		}
+		Stack& operator=(Stack&& other) noexcept{ // BigO(1)
 			if (this != &other) {
 				this->stack = static_cast<List<T>&&>(other.stack);
 				this->cap = other.cap;
@@ -36,30 +47,35 @@ namespace mLib {
 			}
 			return *this;
 		}
-		void push(const T& value) {
+		void push(const T& value) { // BigO(1), but if capacity has not been determined -> (Amortized (1))
 			checkOverflow();
 			stack.add(value);
 		}
-		void push(T&& value) {
+		void push(T&& value) { // BigO(1), but if capacity has not been determined -> (Amortized (1))
 			checkOverflow();
 			stack.add(static_cast<T&&>(value));
 		}
-		T pop() {
+		T pop() { // BigO(1)
 			checkUnderflow();
 			return stack.remove();
 		}
-		const T& peek() const {
+		const T& peek() const { // BigO(1)
 			checkUnderflow();
 			return stack.back();
 		}
-		T& peek() {
+		T& peek() { // BigO(1)
 			checkUnderflow();
 			return stack.back();
 		}
-		void clear() {
+		void clear() { // BigO(n)
 			stack.clear();
 		}
-		friend std::ostream& operator<<(std::ostream& os, const Stack<T>& other) {
+		void setCap(size_t cap) { // BigO(n)
+			if (stack.getSize() >= cap) { throw std::invalid_argument("Invalid capacity : new capacity(" + std::to_string(cap) + ") cannot be less than or equal to the current stack size(" + std::to_string(stack.getSize()) + ")."); }
+			stack.reserve(cap);
+			this->cap = cap;
+		}
+		friend std::ostream& operator<<(std::ostream& os, const Stack<T>& other) { // BigO(n)
 			if (other.getSize() == 0) { os << "EMPTY"; }
 			else {
 				os << std::endl;

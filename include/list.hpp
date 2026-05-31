@@ -18,9 +18,10 @@ namespace mLib {
         size_t size;
         bool autoShrink;
         List(size_t capacity, size_t size, bool autoShrink) : capacity(capacity), size(size), autoShrink(autoShrink) {
-            if (capacity == 0) { throw std::out_of_range("Capacity cannot be 0."); }
-            array = static_cast<T*>(::operator new(capacity * sizeof(T)));
-
+            if (capacity == 0) { array = nullptr; }
+            else {
+                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
+            }
             size_t totalBytes = capacity * sizeof(T);
             size_t totalBits = totalBytes * 8; // 1 Byte == 8 Bit
             DEBUG_LOG(this, "List dynamically allocated. Cap = " + std::to_string(capacity) + " | Size = " + std::to_string(size) + " | Shrink mode = " + std::to_string(autoShrink) + " | Total Size = " + std::to_string(totalBytes) + "Byte (" + std::to_string(totalBits) + " bits)");
@@ -32,18 +33,40 @@ namespace mLib {
                 DEBUG_LOG(this, "Capacity is already 1; no shrink operation executed.");
                 return;
             }
-            T* newArray = static_cast<T*>(::operator new(targetSize * sizeof(T)));
-            for (size_t i = 0; i < size; i++) {
-                new (&newArray[i]) T(static_cast<T&&>(array[i]));
-                array[i].~T();
+            T* newArray = nullptr; 
+            size_t i = 0;
+            try {
+                newArray = static_cast<T*>(::operator new(targetSize * sizeof(T)));
+                if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                    for (i = 0; i < size; ++i) {
+                        new (&newArray[i]) T(static_cast<T&&>(array[i]));
+                        array[i].~T();
+                    }
+                }
+                else {
+                    for (i = 0; i < size; ++i) {
+                        new (&newArray[i]) T(array[i]);
+                    }
+                    for (size_t j = 0; j < size; ++j) {
+                        array[j].~T();
+                    }
+                }
+            }
+            catch (...) {
+                if (newArray != nullptr) {
+                    for (size_t j = 0; j < i; ++j) {
+                        newArray[j].~T();
+                    }
+                    ::operator delete(newArray);
+                }
+                throw;
             }
             ::operator delete(array);
-
             array = newArray;
             capacity = targetSize;
             DEBUG_LOG(this, "reSize completed successfully.");
         }
-        void RAII_DESTRUCTOR() noexcept {
+        void RAII_DESTRUCTOR() noexcept { // BigO(n)
             DEBUG_LOG(this, "Destroying list contents...");
             for (size_t i = 0; i < size; i++) {
                 array[i].~T();
@@ -67,11 +90,12 @@ namespace mLib {
             RAII_DESTRUCTOR();
             DEBUG_LOG(this, "List destroyed. Cleaning up elements and freeing memory.");
         }
-        List() : List(1, 0, true) {}
+        List() : List(0, 0, true) {}
         explicit List(size_t startCapacity) : List(startCapacity, 0, true) {}
-        explicit List(bool autoShrink) : List(1, 0, autoShrink) {}
+        explicit List(bool autoShrink) : List(0, 0, autoShrink) {}
+        explicit List(int startCapacity) : List( startCapacity < 0 ? throw std::invalid_argument("Capacity cannot be negative.") : static_cast<size_t>(startCapacity), 0, true){}
         List(size_t startCapacity, bool autoShrink) : List(startCapacity, 0, autoShrink) {}
-        List(std::initializer_list<T> initList) : List(initList.size() > 0 ? initList.size() : 1, 0, true) {
+        List(std::initializer_list<T> initList) : List(initList.size(), 0, true) {
             for (const auto& item : initList) {
                 add(item);
             }
@@ -95,8 +119,10 @@ namespace mLib {
                 size_t newSize = other.size;
                 bool newShrink = other.autoShrink;
 
-                T* newArray = static_cast<T*>(::operator new(other.capacity * sizeof(T)));
-
+                T* newArray = nullptr;
+                if (newCap != 0) {
+                    newArray = static_cast<T*>(::operator new(other.capacity * sizeof(T)));
+                }
                 size_t catchItemCount = 0;
                 try {
                     for (size_t i = 0; i < newSize; i++) {
@@ -321,12 +347,18 @@ namespace mLib {
             return array[size - 1];
         }
         void clear() { // BigO(n)
-            DEBUG_LOG(this, "Clearing list contents...");
-            for (size_t i = 0; i < size; i++) {
-                array[i].~T();
+            if (autoShrink && capacity > 0) {
+                RAII_DESTRUCTOR();
+            }else {
+                DEBUG_LOG(this, "Clearing list contents...");
+                for (size_t i = 0; i < size; i++) {
+                    array[i].~T();
+                }
+                size = 0;
             }
-            size = 0;
-            if (autoShrink && capacity > 1) { reSize(1, false); }
+        }
+        void reset() { // BigO(n)
+            RAII_DESTRUCTOR();
         }
         T* begin() noexcept { return array; }
         T* end() noexcept { return array + size; }
@@ -334,7 +366,7 @@ namespace mLib {
         const T* end() const noexcept { return array + size; }
         size_t getSize() const noexcept { return size; }
         bool isEmpty() const noexcept { return size == 0; }
-        size_t getCapacity() const noexcept { return capacity; }
+        size_t getCap() const noexcept { return capacity; }
         bool infoAutoShrink() const noexcept { return autoShrink; }
         void setAutoShrink(bool autoShrink) { DEBUG_LOG(this, "AutoShrink modified to: " << autoShrink); this->autoShrink = autoShrink; if (size > 0 && size < (capacity / 4) && autoShrink) { reSize(capacity / 2, false); } }
         friend std::ostream& operator<<(std::ostream& os, const List<T>& list) {

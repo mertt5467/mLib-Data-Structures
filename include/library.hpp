@@ -7,6 +7,7 @@
 #include "dll.hpp"
 #include "cll.hpp"
 #include "stack.hpp"
+#include "queue.hpp"
 #include "lineerHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"

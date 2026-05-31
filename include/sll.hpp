@@ -28,10 +28,12 @@ namespace mLib {
             Node& operator=(const Node& other) = delete;
         };
         Node* head;
+        Node* tail;
         size_t size;
         void clear() noexcept { // BigO(n)
             Node* temp = head;
             head = nullptr;
+            tail = nullptr;
             while (temp != nullptr) {
                 Node* next = temp->next;
                 delete temp;
@@ -40,6 +42,9 @@ namespace mLib {
             }
         }
         Node* getNodeAddress(size_t index) noexcept { // BigO(n)
+            if (index == size - 1) {
+                return tail;
+            }
             Node* temp = head;
             for (size_t i = 0; i < index; i++) {
                 temp = temp->next;
@@ -59,8 +64,8 @@ namespace mLib {
             if (index > size) { throw std::out_of_range("Index out of bounds. Size = " + std::to_string(size)); }
         }
     public:
-        Sll() : head(nullptr), size(0) {}
-        explicit Sll(const Sll& other) : head(nullptr), size(0) { // BigO(n)
+        Sll() : head(nullptr), tail(nullptr), size(0) {}
+        explicit Sll(const Sll& other) : head(nullptr), tail(nullptr), size(0) { // BigO(n)
             try {
                 if (other.isEmpty()) { return; }
                 Node* temp1 = other.head;
@@ -74,17 +79,19 @@ namespace mLib {
                     temp2 = temp2->next;
                     size++;
                 }
+                tail = temp2;
             }
             catch (...) {
                 clear();
                 throw;
             }
         }
-        Sll(Sll&& other) noexcept : head(other.head), size(other.size) { // BigO(1)
+        Sll(Sll&& other) noexcept : head(other.head), tail(other.tail), size(other.size) { // BigO(1)
             other.head = nullptr;
+            other.tail = nullptr;
             other.size = 0;
         }
-        Sll(std::initializer_list<T> initList) : head(nullptr), size(0) { // BigO(n)
+        Sll(std::initializer_list<T> initList) : head(nullptr), tail(nullptr), size(0) { // BigO(n)
             try {
                 bool first = true;
                 Node* temp;
@@ -100,6 +107,7 @@ namespace mLib {
                     }
                     size++;
                 }
+                tail = temp;
             }
             catch (...) {
                 clear();
@@ -117,9 +125,12 @@ namespace mLib {
             if (this != &other) {
                 size_t moveSize = size;
                 Node* moveHead = head;
+                Node* moveTail = tail;
                 head = other.head;
+                tail = other.tail;
                 size = other.size;
                 other.head = moveHead;
+                other.tail = moveTail;
                 other.size = moveSize;
             }
             return *this;
@@ -129,41 +140,58 @@ namespace mLib {
         ~Sll() {
             clear();
         }
-        void addLast(const T& value) { // BigO(n)
+        void addLast(const T& value) { // BigO(1)
             if (isEmpty()) {
                 head = new Node(value);
+                tail = head;
             }
             else {
-                Node* temp = getNodeAddress(size - 1);
-                temp->next = new Node(value);
+                tail->next = new Node(value);
+                tail = tail->next;
             }
             size++;
         }
-        void addLast(T&& value) { // BigO(n)
+        void addLast(T&& value) { // BigO(1)
             if (isEmpty()) {
                 head = new Node(static_cast<T&&>(value));
+                tail = head;
             }
             else {
-                Node* temp = getNodeAddress(size - 1);
-                temp->next = new Node(static_cast<T&&>(value));
+                tail->next = new Node(static_cast<T&&>(value));
+                tail = tail->next;
             }
             size++;
         }
         void addFirst(const T& value) { // BigO(1)
-            Node* temp = new Node(value);
-            temp->next = head;
-            head = temp;
+            if (isEmpty()) {
+                head = new Node(value);
+                tail = head;
+            }
+            else {
+                Node* temp = new Node(value);
+                temp->next = head;
+                head = temp;
+            }
             size++;
         }
         void addFirst(T&& value) { // BigO(1)
-            Node* temp = new Node(static_cast<T&&>(value));
-            temp->next = head;
-            head = temp;
+            if (isEmpty()) {
+                head = new Node(static_cast<T&&>(value));
+                tail = head;
+            }
+            else {
+                Node* temp = new Node(static_cast<T&&>(value));
+                temp->next = head;
+                head = temp;
+            }
             size++;
         }
-        void insert(int index, const T& value) { // BigO(n)
+        void insert(size_t index, const T& value) { // BigO(n)
             if (index == 0) {
                 addFirst(value);
+            }
+            else if (index == size) {
+                addLast(value);
             }
             else {
                 checkAddBounds(index);
@@ -177,6 +205,9 @@ namespace mLib {
         void insert(size_t index, T&& value) { // BigO(n)
             if (index == 0) {
                 addFirst(static_cast<T&&>(value));
+            }
+            else if (index == size) {
+                addLast(static_cast<T&&>(value));
             }
             else {
                 checkAddBounds(index);
@@ -196,8 +227,11 @@ namespace mLib {
         T removeFirst() { // BigO(1)
             checkEmpty();
             Node* trash = head;
-            head = head->next;
             T returnValue = static_cast<T&&>(trash->value);
+            if (size == 1) {
+                tail = nullptr;
+            }
+            head = head->next;
             delete trash;
             size--;
             return returnValue;
@@ -208,11 +242,12 @@ namespace mLib {
             if (size == 1) {
                 trash = head;
                 head = nullptr;
+                tail = nullptr;
             }
             else {
-                Node* temp = getNodeAddress(size - 2);
-                trash = temp->next;
-                temp->next = trash->next;
+                tail = getNodeAddress(size - 2);
+                trash = tail->next;
+                tail->next = nullptr;
             }
             T returnValue = static_cast<T&&>(trash->value);
             delete trash;
@@ -222,6 +257,9 @@ namespace mLib {
         T remove(size_t index) { // BigO(n)
             if (index == 0) {
                 return removeFirst();
+            }
+            else if (index == size - 1) {
+                return removeLast();
             }
             checkEmpty();
             checkAvailableBounds(index);
@@ -300,9 +338,9 @@ namespace mLib {
                 delete[] pin;
                 throw;
             }
-            delete[] array;
+            delete[] pin;
         }
-        const T& getRandom(size_t index1, size_t index2) const{ // BigO(n)
+        const T& getRandom(size_t index1, size_t index2) const { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index1);
             checkAvailableBounds(index2);
@@ -313,10 +351,10 @@ namespace mLib {
             std::uniform_int_distribution<size_t> distr(index1, index2);
             return getNodeAddress(distr(gen))->value;
         }
-        const T& getRandom() const{ // BigO(n)
+        const T& getRandom() const { // BigO(n)
             checkEmpty();
             std::mt19937& gen = mLib::getGlobalRNG();
-            std::uniform_int_distribution<size_t> distr(0, size-1);
+            std::uniform_int_distribution<size_t> distr(0, size - 1);
             return getNodeAddress(distr(gen))->value;
         }
         class Iterator {
@@ -407,17 +445,17 @@ namespace mLib {
             checkEmpty();
             return head->value;
         }
-        T& back() { // BigO(n)
+        T& back() { // BigO(1)
             checkEmpty();
-            return (getNodeAddress(size - 1))->value;
+            return tail->value;
         }
         const T& front() const { // BigO(1)
             checkEmpty();
             return head->value;
         }
-        const T& back() const { // BigO(n)
+        const T& back() const { // BigO(1)
             checkEmpty();
-            return (getNodeAddress(size - 1))->value;
+            return tail->value;
         }
         friend std::ostream& operator<<(std::ostream& os, const Sll<T>& list) {
             if (list.isEmpty()) { os << "EMPTY"; }

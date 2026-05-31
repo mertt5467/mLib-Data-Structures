@@ -90,7 +90,7 @@ namespace mLib {
             if (this != &other) {
                 Node* moveHead = other.head;
                 Node* moveTail = other.tail;
-                int moveSize = other.size;
+                size_t moveSize = other.size;
 
                 other.size = size;
                 other.head = head;

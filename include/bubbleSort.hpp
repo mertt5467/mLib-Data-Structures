@@ -34,7 +34,7 @@ namespace mLib {
 			for (int j = 0; j < (n - i - 1); ++j) {
 				auto temp = it;
 				++it;
-				if (comp(*temp, *it)) {
+				if (comp(*it, *temp)) {
 					auto move = static_cast<typename std::remove_reference<decltype(*temp)>::type&&>(*temp);
 					*temp = static_cast<typename std::remove_reference<decltype(*it)>::type&&>(*it);
 					*it = static_cast<typename std::remove_reference<decltype(move)>::type&&>(move);

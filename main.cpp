@@ -102,7 +102,7 @@ void tryArray() {
     catch(std::exception& e){
         std::cout << e.what() << std::endl;
     }
-    mLib::mergeSort(a1.begin(), a1.begin() + 7, [](auto& a, auto& b) {
+    mLib::mergeSort(a1.begin(), mLib::itNext(a1.begin(), 7), [](auto& a, auto& b) {
         return a > b;
         });
     for (auto& item : a1) {
@@ -140,6 +140,9 @@ void tryList() {
         std::cout << vector << std::endl;
     }
     std::cout << l1.getRandom() << std::endl;
+    l1.clear();
+    std::cout << l1.getCap() << std::endl;
+    std::cout << l1 << std::endl;
 }
 void tryList2() {
     myObj* o1 = new myObj("Apple", 5);
@@ -170,6 +173,27 @@ void tryList2() {
     for (auto& item : l1) {
         std::cout << *item << std::endl;
     }
+}
+void tryList3() {
+    string a = "a1";
+    string b = "b2";
+    string c = "c3";
+    string d = "d4";
+    string e = "e5";
+    string f = "f6";
+    string g = "g7";
+    mLib::List<string> l1(1);
+    l1.add(a);
+    l1.add(b);
+    l1.add(c);
+    l1.add(d);
+    l1.add(e);
+    l1.add(f);
+    l1.add(g);
+    l1.shuffle();
+    std::cout << l1 << std::endl;
+    l1.sort();
+    std::cout << l1 << std::endl;
 }
 // @TEST !!! [mLib::Dll]
 using mLib::Dll;
@@ -288,7 +312,7 @@ void tryCll() {
         std::cout << *item << std::endl;
     }
     c1.sort([](auto* a, auto* b) {
-        return *a < *b;
+        return *a > *b;
     });
     std::cout << "-----" << std::endl;
     for (const auto& item : c1) {
@@ -315,6 +339,7 @@ void tryStack() {
         s1.push(o4);
         s1.push(o5);
         s1.push(o6);
+        s1.setCap(7);
         s1.push(o7);
     }
     catch (std::exception& e) {
@@ -324,7 +349,34 @@ void tryStack() {
     std::cout << std::endl;
     std::cout << s1 << std::endl;
 }
+// @TEST !!! [mLib::Queue]
+void tryQueue() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    myObj o7("Stawberry", 28);
+    mLib::Queue<myObj> q1(4);
+    try {
+        q1.enqueue(o1);
+        q1.enqueue(o2);
+        q1.enqueue(o3);
+        q1.enqueue(o4);
+        q1.setCap(10);
+        q1.enqueue(o5);
+        q1.enqueue(o6);
+        q1.enqueue(o7);
+    }
+    catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    std::cout << (q1.front()) << std::endl;
+    std::cout << std::endl;
+    std::cout << q1 << std::endl;
+}
 int main() {
-    tryArray();
+    tryList3();
     return 0;
 }

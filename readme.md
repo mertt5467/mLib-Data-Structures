@@ -25,7 +25,7 @@
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Stack` | ✅ | Completed. |
-| `mLib::Queue` | ❌ | |
+| `mLib::Queue` | ✅ | Completed. |
 | `mLib::PriorityQueue` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
@@ -75,7 +75,7 @@ To activate the `DEBUG` macro:
 | `mLib::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
 | `mLib::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Stack` | ✅ | Tamamlandı. |
-| `mLib::Queue` | ❌ | |
+| `mLib::Queue` | ✅ | Tamamlandı. |
 | `mLib::PriorityQueue` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
