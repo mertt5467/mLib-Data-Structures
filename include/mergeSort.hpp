@@ -31,24 +31,20 @@ namespace mLib {
 		OBJ_BUFFER buffer(size);
 		while (left != mid and right != end) {
 			if (comp(*left, *right)) {
-				new (&buffer.ptr[buffer.constructed_size]) T(static_cast<T&&>(*left));
-				++left;
+				new (&buffer.ptr[buffer.constructed_size]) T(static_cast<T&&>(*left++));
 			}
 			else {
-				new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*right));
-				++right;
+				new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*right++));
 			}
 			++buffer.constructed_size;
 		}
 		while (left != mid) {
-			new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*left));
+			new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*left++));
 			++buffer.constructed_size;
-			++left;
 		}
 		while (right != end) {
-			new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*right));
+			new (&buffer.ptr[buffer.constructed_size])  T(static_cast<T&&>(*right++));
 			++buffer.constructed_size;
-			++right;
 		}
 		auto target = begin;
 		for (size_t j = 0; j < size; ++j) {
@@ -61,7 +57,7 @@ namespace mLib {
 		if (begin == end || itNext(begin, 1) == end) {
 			return;
 		}
-		auto mid = getPoints(begin, end);
+		auto mid = getMid(begin, end);
 		mergeSort(begin, mid, comp);
 		mergeSort(mid, end, comp);
 

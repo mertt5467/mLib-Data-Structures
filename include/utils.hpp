@@ -21,12 +21,12 @@ namespace mLib {
 			return it;
 		}
 		template <typename Iterator>
-		Iterator getPointsHelper(Iterator begin, Iterator end, std::random_access_iterator_tag) {
+		Iterator getMidHelper(Iterator begin, Iterator end, std::random_access_iterator_tag) {
 			size_t distance = end - begin;
 			return begin + (distance / 2);
 		}
 		template <typename Iterator, typename tag>
-		Iterator getPointsHelper(Iterator begin, Iterator end, tag) {
+		Iterator getMidHelper(Iterator begin, Iterator end, tag) {
 			auto fast = begin;
 			auto slow = begin;
 			while (fast != end) {
@@ -53,7 +53,7 @@ namespace mLib {
 		return helper::getDistanceHelper(begin, end, typename std::iterator_traits<Iterator>::iterator_category{});
 	}
 	template <typename Iterator>
-	Iterator getPoints(Iterator begin, Iterator end) noexcept{
+	Iterator getMid(Iterator begin, Iterator end) noexcept{
 		return helper::getPointsHelper(begin, end, typename std::iterator_traits<Iterator>::iterator_category{});
 	}
 	template <typename Iterator>

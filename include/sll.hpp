@@ -94,7 +94,7 @@ namespace mLib {
         Sll(std::initializer_list<T> initList) : head(nullptr), tail(nullptr), size(0) { // BigO(n)
             try {
                 bool first = true;
-                Node* temp;
+                Node* temp = nullptr;
                 for (const auto& item : initList) {
                     if (first) {
                         first = false;
