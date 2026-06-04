@@ -47,6 +47,9 @@ struct myObj {
     bool operator<(const myObj& other) const noexcept {
         return (this->value) < (other.value);
     }
+    bool operator<=(const myObj& other) const noexcept {
+        return (this->value) <= (other.value);
+    }
     friend std::ostream& operator<<(std::ostream& os, const myObj& put) {
         os << "[ ";
         if (put.name == "") { os << "NULL"; }
@@ -376,7 +379,53 @@ void tryQueue() {
     std::cout << std::endl;
     std::cout << q1 << std::endl;
 }
+// @TEST !!! [mLib::PriorityQueue]
+void tryPriorityQueue() {
+    myObj o1("Apple", 1);
+    myObj o2("Pear", 2);
+    myObj o3("Banana", 3);
+    myObj o4("Avocado", 4);
+    myObj o5("Tomato", 5);
+    myObj o6("Watermelon", 6);
+    myObj o7("Stawberry", 6);
+    mLib::PriorityQueue<myObj> h1;
+
+    h1.enqueue(o7, 6);
+    h1.enqueue(o5, 5);
+    h1.enqueue(o2, 2);
+    h1.enqueue(o3, 3);
+    h1.enqueue(o1, 1);
+    h1.enqueue(o6, 6);
+    h1.enqueue(o4, 4);
+
+    std::cout << h1 << std::endl;
+    std::cout << "---" << std::endl;
+    h1.printConsole();
+    std::cout << "---" << std::endl;
+    h1.printConsoleBottomUp();
+}
+// @TEST !!! [mLib::MinHeap]
+void tryMinHeap() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    myObj o7("Stawberry", 28);
+    mLib::MinHeap<myObj> h1;
+
+    h1.add(o2);
+    h1.add(o3);
+    h1.add(o4);
+    h1.add(o1);
+    h1.add(o5);
+    h1.add(o6);
+    h1.add(o7);
+
+    std::cout << h1 << std::endl;
+}
 int main() {
-    tryList3();
+    tryPriorityQueue();
     return 0;
 }

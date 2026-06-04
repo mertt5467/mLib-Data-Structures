@@ -35,17 +35,16 @@ namespace mLib {
 
 		Queue& operator=(const Queue& other) { // BigO(n)
 			if (this != &other) {
-				Queue<T> temp(other);
-				this->queue = static_cast<Sll<T>&&>(temp.queue);
-				this->cap = temp.cap;
-				temp.cap = 0;
+				queue = other.queue;
+				cap = other.cap;
 			}
 			return *this;
 		}
 		Queue& operator=(Queue&& other) noexcept{ // BigO(1)
 			if (this != &other) {
-				this->queue = static_cast<Sll<T>&&>(other.queue);
-				this->cap = other.cap;
+				queue = static_cast<Sll<T>&&>(other.queue);
+				cap = other.cap;
+
 				other.cap = 0;
 			}
 			return *this;
@@ -83,7 +82,7 @@ namespace mLib {
 			checkUnderflow();
 			return queue.back();
 		}
-		void setCap(size_t cap) { // BigO(n)
+		void setCap(size_t cap) { // BigO(1)
 			if (queue.getSize() >= cap) { throw std::invalid_argument("Invalid capacity : new capacity(" + std::to_string(cap) + ") cannot be less than or equal to the current queue size(" + std::to_string(queue.getSize()) + ")."); }
 			this->cap = cap;
 		}

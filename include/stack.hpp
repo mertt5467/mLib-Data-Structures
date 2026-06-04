@@ -32,17 +32,16 @@ namespace mLib {
 		Stack(std::initializer_list<T> initList) : stack(initList), cap(-1) {}
 		Stack& operator=(const Stack& other) {
 			if (this != &other) {
-				Stack<T> temp(other);
-				this->stack = static_cast<List<T>&&>(temp.stack);
-				this->cap = temp.cap;
-				temp.cap = 0;
+				stack = other.stack;
+				cap = other.cap;
 			}
 			return *this;
 		}
 		Stack& operator=(Stack&& other) noexcept{ // BigO(1)
 			if (this != &other) {
-				this->stack = static_cast<List<T>&&>(other.stack);
-				this->cap = other.cap;
+				stack = static_cast<List<T>&&>(other.stack);
+				cap = other.cap;
+
 				other.cap = 0;
 			}
 			return *this;
@@ -80,8 +79,8 @@ namespace mLib {
 			else {
 				os << std::endl;
 				os << "\t|OVER|" << std::endl;
-				for (auto it = other.stack.end() - 1; it >= other.stack.begin(); --it) {
-					os << *it << std::endl;
+				for (long long i = other.stack.getSize() - 1; i >= 0; --i) {
+					os << other.stack[i] << std::endl;
 				}
 				os << "\t|UNDER|" << std::endl;
 			}

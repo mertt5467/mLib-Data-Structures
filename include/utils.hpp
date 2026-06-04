@@ -8,6 +8,16 @@ namespace mLib {
 		thread_local static std::mt19937 gen(std::random_device{}());
 		return gen;
 	}
+	template <typename T1, typename T2>
+	struct pair {
+		T1 first;
+		T2 second;
+
+		pair(const T1& first_param, const T2& second_param) : first(first_param), second(second_param){}
+
+		template<typename U1, typename U2>
+		pair(U1&& a, U2&& b) : first(static_cast<U1&&>(a)), second(static_cast<U2&&>(b)){}
+	};
 	namespace helper {
 		template <typename Iterator>
 		Iterator itNextHelper(Iterator it, size_t step, std::random_access_iterator_tag) noexcept {
@@ -54,7 +64,7 @@ namespace mLib {
 	}
 	template <typename Iterator>
 	Iterator getMid(Iterator begin, Iterator end) noexcept{
-		return helper::getPointsHelper(begin, end, typename std::iterator_traits<Iterator>::iterator_category{});
+		return helper::getMidHelper(begin, end, typename std::iterator_traits<Iterator>::iterator_category{});
 	}
 	template <typename Iterator>
 	Iterator itNext(Iterator it, size_t step) noexcept{

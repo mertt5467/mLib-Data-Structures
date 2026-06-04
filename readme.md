@@ -26,7 +26,9 @@
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Stack` | ✅ | Completed. |
 | `mLib::Queue` | ✅ | Completed. |
-| `mLib::PriorityQueue` | ❌ | |
+| `mLib::PriorityQueue` | ✅ | Completed. |
+| `mLib::MinHeap` | ✅ | Completed. |
+| `mLib::MaxHeap` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
 | `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
@@ -76,7 +78,9 @@ To activate the `DEBUG` macro:
 | `mLib::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Stack` | ✅ | Tamamlandı. |
 | `mLib::Queue` | ✅ | Tamamlandı. |
-| `mLib::PriorityQueue` | ❌ | |
+| `mLib::PriorityQueue` | ✅ | Tamamlandı. |
+| `mLib::MinHeap` | ✅ | Tamamlandı. |
+| `mLib::MaxHeap` | ❌ | |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
 | `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
