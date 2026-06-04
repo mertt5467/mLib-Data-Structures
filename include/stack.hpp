@@ -89,5 +89,6 @@ namespace mLib {
 		inline bool isEmpty() const noexcept { return stack.getSize() == 0; }
 		inline size_t getSize() const noexcept { return stack.getSize(); }
 		inline long long getCap() const noexcept { return cap; }
+		inline bool isFull() const noexcept { return static_cast<long long>(stack.getSize()) == cap; }
 	};
 }

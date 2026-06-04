@@ -167,14 +167,15 @@ void tryList2() {
     for (auto& item : l1) {
         std::cout << *item << std::endl;
     }
-    l1.sort([](myObj* a, myObj* b) {
-        return *a < *b;
-    });
+    l1.sort(mLib::greater<myObj*>{});
     for (auto& item : l1) {
         std::cout << item << std::endl;
     }
     for (auto& item : l1) {
         std::cout << *item << std::endl;
+    }
+    for (auto& item : l1) {
+        delete item;
     }
 }
 void tryList3() {
@@ -195,7 +196,7 @@ void tryList3() {
     l1.add(g);
     l1.shuffle();
     std::cout << l1 << std::endl;
-    l1.sort();
+    l1.sort(mLib::less<string>{});
     std::cout << l1 << std::endl;
 }
 // @TEST !!! [mLib::Dll]
@@ -388,9 +389,9 @@ void tryPriorityQueue() {
     myObj o5("Tomato", 5);
     myObj o6("Watermelon", 6);
     myObj o7("Stawberry", 6);
-    mLib::PriorityQueue<myObj> h1;
+    mLib::PriorityQueue<myObj, double, mLib::greater<double>> h1;
 
-    h1.enqueue(o7, 6);
+    h1.enqueue(o7, 7);
     h1.enqueue(o5, 5);
     h1.enqueue(o2, 2);
     h1.enqueue(o3, 3);
@@ -404,8 +405,8 @@ void tryPriorityQueue() {
     std::cout << "---" << std::endl;
     h1.printConsoleBottomUp();
 }
-// @TEST !!! [mLib::MinHeap]
-void tryMinHeap() {
+// @TEST !!! [mLib::Heap]
+void tryHeap() {
     myObj o1("Apple", 5);
     myObj o2("Pear", 10);
     myObj o3("Banana", 14);
@@ -413,7 +414,7 @@ void tryMinHeap() {
     myObj o5("Tomato", 8);
     myObj o6("Watermelon", 30);
     myObj o7("Stawberry", 28);
-    mLib::MinHeap<myObj> h1;
+    mLib::Heap<myObj, mLib::greater<myObj>> h1;
 
     h1.add(o2);
     h1.add(o3);
@@ -424,8 +425,12 @@ void tryMinHeap() {
     h1.add(o7);
 
     std::cout << h1 << std::endl;
+
+    h1.printConsole();
+
+    h1.printConsoleBottomUp();
 }
 int main() {
-    tryPriorityQueue();
+    std::cout << "Welcome to mLib!" << std::endl;
     return 0;
 }

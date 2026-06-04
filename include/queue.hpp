@@ -108,5 +108,6 @@ namespace mLib {
 		inline bool isEmpty() const noexcept { return queue.getSize() == 0; }
 		inline size_t getSize() const noexcept { return queue.getSize(); }
 		inline long long getCap() const noexcept { return cap; }
+		inline bool isFull() const noexcept { return static_cast<long long>(queue.getSize()) == cap; }
 	};
 }

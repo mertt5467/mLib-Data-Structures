@@ -18,6 +18,30 @@ namespace mLib {
 		template<typename U1, typename U2>
 		pair(U1&& a, U2&& b) : first(static_cast<U1&&>(a)), second(static_cast<U2&&>(b)){}
 	};
+	template <typename T>
+	struct less {
+		constexpr bool operator()(const T& l, const T& r) const {
+			return l < r;
+		}
+	};
+	template <typename T>
+	struct less<T*> {
+		constexpr bool operator()(const T* l, const T* r) const {
+			return *l < *r;
+		}
+	};
+	template <typename T>
+	struct greater {
+		constexpr bool operator()(const T& l, const T& r) const {
+			return l > r;
+		}
+	};
+	template <typename T>
+	struct greater<T*> {
+		constexpr bool operator()(const T* l, const T* r) const {
+			return *l > *r;
+		}
+	};
 	namespace helper {
 		template <typename Iterator>
 		Iterator itNextHelper(Iterator it, size_t step, std::random_access_iterator_tag) noexcept {

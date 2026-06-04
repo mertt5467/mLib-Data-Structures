@@ -9,7 +9,7 @@
 #include "stack.hpp"
 #include "queue.hpp"
 #include "priorityQueue.hpp"
-#include "minHeap.hpp"
+#include "heap.hpp"
 #include "lineerHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"

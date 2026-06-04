@@ -65,9 +65,10 @@ namespace mLib {
 	}
 	template<typename Iterator>
 	void mergeSort(Iterator begin, Iterator end) { // BigO(n * log n)
-		mergeSort(begin, end, [](const auto& a, const auto& b) {
-			return a < b;
-			});
+
+		using V = typename std::iterator_traits<Iterator>::value_type;
+
+		mergeSort(begin, end, mLib::less<V>{});
 	}
 	template<typename T>
 	void mergeSort(T& list) { // BigO(n * log n)

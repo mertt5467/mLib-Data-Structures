@@ -5,12 +5,14 @@
 #include <string>
 #include <initializer_list>
 #include "list.hpp"
+#include "utils.hpp"
 
 namespace mLib {
-	template <typename T>
-	class MinHeap{
+	template <typename T, typename Compare = mLib::less<T>>
+	class Heap{
 	private:
 		List<T> heap;
+		Compare comp;
 		long long cap;
 
 		size_t getParentIndex(size_t index) const noexcept{
@@ -35,7 +37,7 @@ namespace mLib {
 		void heapifyUp(size_t index) noexcept{ // BigO(log(n))
 			if (index == 0) { return; }
 			size_t parentIndex = getParentIndex(index);
-				if (heap.get(parentIndex) > heap.get(index)) {
+				if (comp(heap.get(index), heap.get(parentIndex))) {
 					heap.swap(parentIndex, index);
 					heapifyUp(parentIndex);
 				}
@@ -43,18 +45,17 @@ namespace mLib {
 		void heapifyDown(size_t index) noexcept{ // BigO(log(n))
 			size_t left = getLeftChildIndex(index);
 			size_t right = getRightChildIndex(index);
-			size_t smallest = index;
+			size_t pin = index;
 
-			if (checkIndex(left) and heap.get(smallest) > heap.get(left)) {
-				smallest = left;
+			if (checkIndex(left) and comp(heap.get(left), heap.get(pin))) {
+				pin = left;
 			}
-			if (checkIndex(right) and heap.get(smallest) > heap.get(right)) {
-				smallest = right;
+			if (checkIndex(right) and comp(heap.get(right), heap.get(pin))) {
+				pin = right;
 			}
-
-			if (smallest != index) {
-				heap.swap(smallest, index);
-				heapifyDown(smallest);
+			if (pin != index) {
+				heap.swap(pin, index);
+				heapifyDown(pin);
 			}
 		}
 		bool checkIndex(size_t index) const noexcept{
@@ -67,11 +68,11 @@ namespace mLib {
 			return heap.end();
 		}
 	public:
-		MinHeap() : cap(-1){}
+		Heap() : cap(-1){}
 
-		explicit MinHeap(size_t cap_param) : heap(cap_param), cap(static_cast<long long>(cap_param)){}
+		explicit Heap(size_t cap_param) : heap(cap_param), cap(static_cast<long long>(cap_param)){}
 
-		MinHeap(std::initializer_list<T> initList) : heap(initList), cap(-1) { // BigO(n) Floyd's Algorithm
+		Heap(std::initializer_list<T> initList) : heap(initList), cap(-1) { // BigO(n) Floyd's Algorithm
 			if (!heap.isEmpty()) {
 				for (long long i = (heap.getSize() / 2) - 1; i >= 0; --i) {
 					heapifyDown(static_cast<size_t>(i));
@@ -79,20 +80,20 @@ namespace mLib {
 			}
 		}
 
-		MinHeap(const MinHeap& other) : heap(other.heap), cap(other.cap){} // BigO(n)
+		Heap(const Heap& other) : heap(other.heap), cap(other.cap){} // BigO(n)
 
-		MinHeap(MinHeap&& other) noexcept : heap(static_cast<List<T>&&>(other.heap)), cap(other.cap) { // BigO(1)
+		Heap(Heap&& other) noexcept : heap(static_cast<List<T>&&>(other.heap)), cap(other.cap) { // BigO(1)
 			other.cap = 0;
 		}
 
-		MinHeap& operator=(const MinHeap& other) { // BigO(n)
+		Heap& operator=(const Heap& other) { // BigO(n)
 			if (this != &other) {
 				heap = other.heap;
 				cap = other.cap;
 			}
 			return *this;
 		}
-		MinHeap& operator=(MinHeap&& other) noexcept{ // BigO(1)
+		Heap& operator=(Heap&& other) noexcept{ // BigO(1)
 			if (this != &other) {
 				heap = static_cast<List<T>&&>(other.heap);
 				cap = other.cap;
@@ -141,7 +142,7 @@ namespace mLib {
 		void clear() { // BigO(n)
 			heap.clear();
 		}
-		friend std::ostream& operator<<(std::ostream& os, const MinHeap& heap) { // BigO(n)
+		friend std::ostream& operator<<(std::ostream& os, const Heap& heap) { // BigO(n)
 			if (heap.isEmpty()) { os << "EMPTY"; }
 			else {
 				size_t i = heap.getSize();
@@ -157,10 +158,35 @@ namespace mLib {
 			}
 			return os;
 		}
-		~MinHeap() {
+		~Heap() {
 			cap = 0;
 		}
-
+		void printConsole() const { // BigO(n * log(n))
+			if (isEmpty()) {
+				std::cout << "EMPTY" << std::endl;
+			}
+			else {
+				Heap<T, Compare> temp(*this);
+				while (!temp.isEmpty()) {
+					std::cout << temp.remove() << std::endl;
+				}
+			}
+		}
+		void printConsoleBottomUp() const { // BigO(n * log(n))
+			if (isEmpty()) {
+				std::cout << "EMPTY" << std::endl;
+			}
+			else {
+				Heap<T, Compare> temp(*this);
+				Stack<T> reverse(temp.getSize() + 1);
+				while (!temp.isEmpty()) {
+					reverse.push(temp.remove());
+				}
+				while (!reverse.isEmpty()) {
+					std::cout << reverse.pop() << std::endl;
+				}
+			}
+		}
 		T& front() { // BigO(1)
 			checkUnderflow();
 			return heap.front();
@@ -177,8 +203,9 @@ namespace mLib {
 			checkUnderflow();
 			return heap.back();
 		}
-		bool isEmpty() const noexcept { return heap.isEmpty(); }
-		size_t getSize() const noexcept { return heap.getSize(); }
-		long long getCap() const noexcept { return cap; }
+		inline bool isEmpty() const noexcept { return heap.isEmpty(); }
+		inline size_t getSize() const noexcept { return heap.getSize(); }
+		inline long long getCap() const noexcept { return cap; }
+		inline bool isFull() const noexcept { return static_cast<long long>(heap.getSize()) == cap; }
 	};
 }

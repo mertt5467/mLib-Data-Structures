@@ -4,12 +4,12 @@
 #include <stdexcept>
 #include <string>
 #include <initializer_list>
-#include "minHeap.hpp"
+#include "heap.hpp"
 #include "utils.hpp"
 #include "stack.hpp"
 
 namespace mLib {
-	template<typename T, typename P = double>
+	template<typename T, typename P = double, typename Compare = mLib::less<P>>
 	class PriorityQueue {
 	private:
 		struct Node {
@@ -20,24 +20,15 @@ namespace mLib {
 
 			Node(T&& value_param, P priority_param) noexcept: value(static_cast<T&&>(value_param)), priority(priority_param){}
 
-			bool operator<(const Node& other) const noexcept{
-				return (this->priority) < (other.priority);
-			}
-			bool operator<=(const Node& other) const noexcept {
-				return (this->priority) <= (other.priority);
-			}
-			bool operator>(const Node& other) const noexcept {
-				return (this->priority) > (other.priority);
-			}
-			bool operator>=(const Node& other) const noexcept {
-				return (this->priority) >= (other.priority);
-			}
-			bool operator==(const Node& other) const noexcept {
-				return (this->priority) == (other.priority);
-			}
 			friend std::ostream& operator<<(std::ostream& os, const Node& node) {
 				os << "{ " << node.value << " - Priority : " << node.priority << " }";
 				return os;
+			}
+		};
+		struct NodeCompare {
+			Compare comp;
+			constexpr bool operator()(const Node& l, const Node& r) const{
+				return comp(l.priority, r.priority);
 			}
 		};
 		void checkOverflow() const {
@@ -50,7 +41,7 @@ namespace mLib {
 				throw std::underflow_error("Queue underflow: operation not allowed on an empty heap. Capacity = " + std::to_string(queue.getCap()));
 			}
 		}
-		MinHeap<Node> queue;
+		Heap<Node, NodeCompare> queue;
 	public:
 		PriorityQueue() : queue(){}
 
@@ -100,7 +91,7 @@ namespace mLib {
 				std::cout << "EMPTY" << std::endl;
 			}
 			else {
-				PriorityQueue<T, P> temp(*this);
+				PriorityQueue<T, P, Compare> temp(*this);
 				while (!temp.isEmpty()) {
 					std::cout << temp.dequeue() << std::endl;
 				}
@@ -111,7 +102,7 @@ namespace mLib {
 				std::cout << "EMPTY" << std::endl;
 			}
 			else {
-				PriorityQueue<T, P> temp(*this);
+				PriorityQueue<T, P, Compare> temp(*this);
 				Stack<T> reverse(temp.getSize() + 1);
 				while (!temp.isEmpty()) {
 					reverse.push(temp.dequeue());
@@ -124,8 +115,9 @@ namespace mLib {
 		friend std::ostream& operator<<(std::ostream& os, const PriorityQueue& pqueue) { // BigO(n)
 			return os << pqueue.queue;
 		}
-		long long getCap() const noexcept { return queue.getCap(); }
-		size_t getSize() const noexcept { return queue.getSize(); }
-		bool isEmpty() const noexcept { return queue.isEmpty(); }
+		inline long long getCap() const noexcept { return queue.getCap(); }
+		inline size_t getSize() const noexcept { return queue.getSize(); }
+		inline bool isEmpty() const noexcept { return queue.isEmpty(); }
+		inline bool isFull() const noexcept { return static_cast<long long>(queue.getSize()) == queue.getCap(); }
 	};
 }

@@ -27,8 +27,7 @@
 | `mLib::Stack` | ✅ | Completed. |
 | `mLib::Queue` | ✅ | Completed. |
 | `mLib::PriorityQueue` | ✅ | Completed. |
-| `mLib::MinHeap` | ✅ | Completed. |
-| `mLib::MaxHeap` | ❌ | |
+| `mLib::Heap` | ✅ | Completed. |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
 | `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
@@ -79,8 +78,7 @@ To activate the `DEBUG` macro:
 | `mLib::Stack` | ✅ | Tamamlandı. |
 | `mLib::Queue` | ✅ | Tamamlandı. |
 | `mLib::PriorityQueue` | ✅ | Tamamlandı. |
-| `mLib::MinHeap` | ✅ | Tamamlandı. |
-| `mLib::MaxHeap` | ❌ | |
+| `mLib::Heap` | ✅ | Tamamlandı. |
 | `mLib::BST` (Binary Search Tree) | ❌ | |
 | `mLib::AVL` (Self-Balancing Tree) | ❌ | |
 | `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
