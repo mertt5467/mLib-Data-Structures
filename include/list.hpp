@@ -17,14 +17,11 @@ namespace mLib {
         size_t capacity;
         size_t size;
         bool autoShrink;
-        List(size_t capacity, size_t size, bool autoShrink) : capacity(capacity), size(size), autoShrink(autoShrink) {
-            if (capacity == 0) { array = nullptr; }
-            else {
-                array = static_cast<T*>(::operator new(capacity * sizeof(T)));
-            }
+        List(size_t capacity, size_t size, bool autoShrink) : array(capacity == 0 ? nullptr : static_cast<T*>(::operator new(capacity * sizeof(T)))), capacity(capacity), size(size), autoShrink(autoShrink) {
             size_t totalBytes = capacity * sizeof(T);
+            double totalKilobytes = static_cast<double>(totalBytes) / 1024;
             size_t totalBits = totalBytes * 8; // 1 Byte == 8 Bit
-            DEBUG_LOG(this, "List dynamically allocated. Cap = " + std::to_string(capacity) + " | Size = " + std::to_string(size) + " | Shrink mode = " + std::to_string(autoShrink) + " | Total Size = " + std::to_string(totalBytes) + "Byte (" + std::to_string(totalBits) + " bits)");
+            DEBUG_LOG(this, "List dynamically allocated. Cap = " + std::to_string(capacity) + " | Size = " + std::to_string(size) + " | Shrink mode = " + std::to_string(autoShrink) + " | Total Size = " + std::to_string(totalKilobytes) + " Kilobyte (" + std::to_string(totalBytes) + "Byte) (" + std::to_string(totalBits) + " bits)");
         }
 
         void reSize(size_t targetSize, bool extend) { // BigO(n)
