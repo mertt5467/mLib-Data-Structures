@@ -10,6 +10,7 @@
 #include "queue.hpp"
 #include "priorityQueue.hpp"
 #include "heap.hpp"
+#include "bst.hpp"
 #include "lineerHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"

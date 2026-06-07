@@ -50,6 +50,9 @@ struct myObj {
     bool operator<=(const myObj& other) const noexcept {
         return (this->value) <= (other.value);
     }
+    bool operator>=(const myObj& other) const noexcept {
+        return (this->value) >= (other.value);
+    }
     friend std::ostream& operator<<(std::ostream& os, const myObj& put) {
         os << "[ ";
         if (put.name == "") { os << "NULL"; }
@@ -429,6 +432,44 @@ void tryHeap() {
     h1.printConsole();
 
     h1.printConsoleBottomUp();
+}
+// @TEST !!! [mLib::Bst]
+void tryBst() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    myObj o7("Stawberry", 28);
+
+    mLib::Bst<myObj> b1;
+
+    b1.add(o2);
+    b1.add(o1);
+    b1.add(o4);
+    b1.add(o3);
+    b1.add(o5);
+    b1.add(o7);
+    b1.add(o6);
+
+    std::cout << b1 << std::endl;
+
+    b1.remove(o5);
+    std::cout << b1 << std::endl;
+    b1.remove(o2);
+    std::cout << b1 << std::endl;
+    b1.remove(o1);
+    std::cout << b1 << std::endl;
+    b1.remove(o4);
+    std::cout << b1 << std::endl;
+    b1.remove(o6);
+    std::cout << b1 << std::endl;
+    b1.remove(o7);
+    std::cout << b1 << std::endl;
+    b1.remove(o3);
+
+    std::cout << b1 << std::endl;
 }
 int main() {
     std::cout << "Welcome to mLib!" << std::endl;
