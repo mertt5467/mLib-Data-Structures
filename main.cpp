@@ -442,6 +442,9 @@ void tryBst() {
     myObj o5("Tomato", 8);
     myObj o6("Watermelon", 30);
     myObj o7("Stawberry", 28);
+    myObj o8("Cherry", 18);
+    myObj o9("Pumpkin", 35);
+    myObj o10("Melon", 29);
 
     mLib::Bst<myObj> b1;
 
@@ -453,25 +456,47 @@ void tryBst() {
     b1.add(o7);
     b1.add(o6);
 
-    std::cout << b1 << std::endl;
+    for (const auto& item : b1) {
+        std::cout << item << " ";
+    }
+    std::cout << std::endl;
 
-    b1.remove(o5);
-    std::cout << b1 << std::endl;
-    b1.remove(o2);
-    std::cout << b1 << std::endl;
-    b1.remove(o1);
-    std::cout << b1 << std::endl;
-    b1.remove(o4);
-    std::cout << b1 << std::endl;
-    b1.remove(o6);
-    std::cout << b1 << std::endl;
-    b1.remove(o7);
-    std::cout << b1 << std::endl;
-    b1.remove(o3);
+    mLib::Bst<myObj> b2;
 
-    std::cout << b1 << std::endl;
+    b2.add(o8);
+    b2.add(o9);
+    b2.add(o10);
+
+    b1 = static_cast<mLib::Bst<myObj>&&>(b2);
+
+    b1.printInOrder();
+    std::cout << std::endl;
+    b1.printPreOrder();
+    std::cout << std::endl;
+    b1.printPostOrder();
+    std::cout << std::endl;
+    b1.printLevelOrder();
+    std::cout << std::endl;
+
+    std::cout << "------------" << std::endl << std::endl;
+
+    b2.printInOrder();
+    std::cout << std::endl;
+    b2.printPreOrder();
+    std::cout << std::endl;
+    b2.printPostOrder();
+    std::cout << std::endl;
+
+    std::cout << b1.getHeight() << std::endl;
+
+    mLib::Bst<myObj> b3 = { o2, o1, o4, o9, o5, o10, o6, o3, o7, o8,};
+    for (const auto& item : b3) {
+        std::cout << item << " ";
+    }
+    std::cout << b3.getHeight() << std::endl;
+    std::cout << std::endl;
 }
 int main() {
-    std::cout << "Welcome to mLib!" << std::endl;
+    tryBst();
     return 0;
 }
