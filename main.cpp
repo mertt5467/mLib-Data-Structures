@@ -496,7 +496,72 @@ void tryBst() {
     std::cout << b3.getHeight() << std::endl;
     std::cout << std::endl;
 }
+// @TEST !!! [mLib::Avl]
+void tryAvl() {
+    myObj o1("Apple", 5);
+    myObj o2("Pear", 10);
+    myObj o3("Banana", 14);
+    myObj o4("Avocado", 25);
+    myObj o5("Tomato", 8);
+    myObj o6("Watermelon", 30);
+    myObj o7("Stawberry", 28);
+    myObj o8("Cherry", 18);
+    myObj o9("Pumpkin", 35);
+    myObj o10("Melon", 29);
+
+    mLib::Avl<myObj> b1;
+
+    b1.add(o1);
+    b1.add(o5);
+    b1.add(o2);
+    b1.add(o3);
+    b1.add(o4);
+    b1.add(o7);
+    b1.add(o6);
+
+    for (const auto& item : b1) {
+        std::cout << item << " ";
+    }
+    std::cout << std::endl;
+
+    
+    mLib::Avl<myObj> b2;
+
+    b2.add(o8);
+    b2.add(o9);
+    b2.add(o10);
+
+    b1 = static_cast<mLib::Avl<myObj>&& > (b2);
+
+    b1.printInOrder();
+    std::cout << std::endl;
+    b1.printPreOrder();
+    std::cout << std::endl;
+    b1.printPostOrder();
+    std::cout << std::endl;
+    b1.printLevelOrder();
+    std::cout << std::endl;
+
+    std::cout << "------------" << std::endl << std::endl;
+
+    b2.printInOrder();
+    std::cout << std::endl;
+    b2.printPreOrder();
+    std::cout << std::endl;
+    b2.printPostOrder();
+    std::cout << std::endl;
+
+    std::cout << b1.getHeight() << std::endl;
+
+    mLib::Avl<myObj> b3 = { o2, o1, o4, o9, o5, o10, o6, o3, o7, o8, };
+    for (const auto& item : b3) {
+        std::cout << item << " ";
+    }
+    std::cout << b3.getHeight() << std::endl;
+    std::cout << std::endl;
+
+}
 int main() {
-    tryBst();
+    tryAvl();
     return 0;
 }

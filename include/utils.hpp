@@ -44,13 +44,18 @@ namespace mLib {
 	};
 
 	template <typename T>
-	const T& max(const T& a, const T& b) {
+	constexpr const T& max(const T& a, const T& b) {
 		return a > b ? a : b;
 	}
 
 	template <typename T>
-	const T& min(const T& a, const T& b) {
-		return a < b ? b : a;
+	constexpr const T& min(const T& a, const T& b) {
+		return a > b ? b : a;
+	}
+
+	template <typename T>
+	constexpr T absDiff(const T& a, const T& b) noexcept {
+		return (a > b) ? (a - b) : (b - a);
 	}
 	namespace helper {
 		template <typename Iterator>

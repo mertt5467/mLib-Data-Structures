@@ -11,6 +11,7 @@
 #include "priorityQueue.hpp"
 #include "heap.hpp"
 #include "bst.hpp"
+#include "avl.hpp"
 #include "lineerHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"
