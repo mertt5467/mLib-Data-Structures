@@ -452,6 +452,8 @@ namespace mLib {
         Const_Iterator end() const noexcept {
             return Const_Iterator(nullptr);
         }
+        Const_Iterator cbegin() const noexcept { return begin(); }
+        Const_Iterator cend() const noexcept { return end(); }
         T& front() { // BigO(1)
             checkEmpty();
             return head->value;

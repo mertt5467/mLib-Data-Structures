@@ -113,4 +113,26 @@ namespace mLib {
 	Iterator itNext(Iterator it) noexcept{
 		return itNext(it, 1);
 	}
+	template <typename N>
+	struct Hash {
+		constexpr size_t operator()(N number) const {
+			return static_cast<size_t>(number);
+		}
+	};
+	template <typename N>
+	struct Hash<N*> {
+		size_t operator()(N* ptr) const {
+			return reinterpret_cast<size_t>(ptr);
+		}
+	};
+	template <>
+	struct Hash<std::string> { // djb2 algorithm
+		size_t operator()(const std::string& string) const {
+			size_t st_index = 5381;
+			for (size_t i = 0; i < string.length(); ++i) {
+				st_index = (st_index * 33) + string[i];
+			}
+			return st_index;
+		}
+	};
 }

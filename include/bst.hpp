@@ -332,18 +332,14 @@ namespace mLib {
 				return this->current != other.current;
 			}
 		};
-		const_iterator begin() noexcept {
-			return const_iterator(root);
-		}
-		const_iterator end() noexcept {
-			return const_iterator(nullptr);
-		}
 		const_iterator begin() const noexcept {
 			return const_iterator(root);
 		}
 		const_iterator end() const noexcept {
 			return const_iterator(nullptr);
 		}
+		const_iterator cbegin() const noexcept { return begin(); }
+		const_iterator cend() const noexcept { return end(); }
 		void clear() {
 			clear(root);
 		}

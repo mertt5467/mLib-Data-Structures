@@ -16,9 +16,9 @@ namespace mLib {
 	template<typename T, typename Compare>
 	void bubbleSort(T& list, Compare comp) {
 		auto it = list.begin();
-		int n = list.getSize();
-		for (int i = 0; i < n; ++i) {
-			for (int j = 0; j < (n - i - 1); ++j) {
+		size_t n = list.getSize();
+		for (size_t i = 0; i < n; ++i) {
+			for (size_t j = 0; j < (n - i - 1); ++j) {
 				auto temp = it;
 				++it;
 				if (comp(*it, *temp)) {

@@ -12,7 +12,7 @@
 #include "heap.hpp"
 #include "bst.hpp"
 #include "avl.hpp"
-#include "lineerHash.hpp"
+#include "linearHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"
 #include "mergeSort.hpp"

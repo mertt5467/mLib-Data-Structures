@@ -22,7 +22,7 @@
 | `mLib::Sll` (Singly Linked List) | ✅ | Completed. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Completed. |
 | `mLib::Cll` (Circular Linked List) | ✅ | Completed. |
-| `mLib::LineerHash` (Linear Probing) | 🚧 | Core logic ready, undergoing refactoring |
+| `mLib::LinearHash` (Linear Probing) | ✅ | Completed. |
 | `mLib::ChainingHash` (Chaining) | ❌ |  |
 | `mLib::Stack` | ✅ | Completed. |
 | `mLib::Queue` | ✅ | Completed. |
@@ -73,7 +73,7 @@ To activate the `DEBUG` macro:
 | `mLib::Sll` (Singly Linked List) | ✅ | Tamamlandı. |
 | `mLib::Dll` (Doubly Linked List) | ✅ | Tamamlandı. |
 | `mLib::Cll` (Circular Linked List) | ✅ | Tamamlandı. |
-| `mLib::LineerHash` (Linear Probing) | 🚧 | Temel mantık hazır, refactor edilecek |
+| `mLib::LinearHash` (Linear Probing) | ✅ | Tamamlandı. |
 | `mLib::ChainingHash` (Chaining) | ❌ | |
 | `mLib::Stack` | ✅ | Tamamlandı. |
 | `mLib::Queue` | ✅ | Tamamlandı. |

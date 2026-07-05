@@ -36,6 +36,8 @@ struct myObj {
     string name;
     int value;
 
+    myObj() : name(""), value(0){} // FIXME !!!
+
     myObj(string name, int value) : name(name), value(value) {}
 
     bool operator>(const myObj& other) const noexcept{
@@ -61,31 +63,6 @@ struct myObj {
         return os;
     }
 };
-// @TEST !!! [mLib::LineerHash] (@DEPRECATED)
-using mLib::LineerHash;
-using mLib::Entry;
-void tryLineerHash() {
-    LineerHash<std::string>* h1 = new LineerHash<std::string>(10);
-    h1->put(Entry<std::string>(4, "Ali Demir"));
-    h1->put(Entry<std::string>(2, "Fatma Bor"));
-    h1->put(Entry<std::string>(5, "Mehmet Uranyum"));
-    h1->put(Entry<std::string>(6, "Ural Celik"));
-    h1->put(Entry<std::string>(10, "Feyza Cinko"));
-    h1->put(Entry<std::string>(12, "Islam Mayda"));
-    h1->put(Entry<std::string>(22, "Eren Zumrut"));
-    h1->print();
-    h1->put(Entry<std::string>(7, "Sego Hidrojen"));
-    h1->put(Entry<std::string>(1, "Yagmur Komur"));
-    const std::string& e1 = h1->get(12);
-    h1->put(Entry<std::string>(28, e1));
-    h1->remove(12);
-    try {
-        std::cout << h1->get(3) << std::endl;
-    }
-    catch (std::out_of_range& e) {
-        std::cout << e.what() << std::endl;
-    }
-}
 // @TEST !!! [mLib::Array]
 void tryArray() {
     myObj o1("Apple", 5);
@@ -561,7 +538,39 @@ void tryAvl() {
     std::cout << std::endl;
 
 }
+// @TEST !!! [mLib::LinearHash] 
+void tryLinearHash() {
+    mLib::LinearHash<std::string>* h1 = new mLib::LinearHash<std::string>(10);
+    h1->add("Ali Demir", 4);
+    h1->add("Fatma Bor", 2);
+    h1->add("Mehmet Uranyum", 5);
+    h1->add("Ural Celik", 6);
+    h1->add("Feyza Cinko", 10);
+    h1->add("Islam Mayda", 12);
+    h1->add("Eren Zumrut", 22);
+    std::cout << *h1 << std::endl;
+    h1->add("Sego Hidrojen", 7);
+    h1->add("Yagmur Komur", 1);
+    const std::string& e1 = h1->get(12);
+    h1->add(e1, 28);
+    h1->remove(12);
+    try {
+        std::cout << h1->get(3) << std::endl;
+    }
+    catch (std::invalid_argument& e) {
+        std::cout << e.what() << std::endl;
+    }
+    delete h1;
+
+    mLib::LinearHash<myObj> h2 = { {myObj("Watermelon", 30), 3}, {myObj("Apple", 12), 4}, {myObj("Banana", 15), 1} };
+
+    std::cout << h2 << std::endl;
+
+    for (const auto& item : h2) {
+        std::cout << item << std::endl;
+    }
+}
 int main() {
-    tryAvl();
+    std::cout << "Welcome to mLib!" << std::endl;
     return 0;
 }

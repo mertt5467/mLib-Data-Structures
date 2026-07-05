@@ -492,6 +492,8 @@ namespace mLib {
 		Const_Iterator end() const noexcept {
 			return Const_Iterator(nullptr);
 		}
+		Const_Iterator cbegin() const noexcept { return begin(); }
+		Const_Iterator cend() const noexcept { return end(); }
 		friend std::ostream& operator<<(std::ostream& os, const Cll<T>& list) { // BigO(n)
 			if (list.isEmpty()) { os << "EMPTY"; }
 			else {
