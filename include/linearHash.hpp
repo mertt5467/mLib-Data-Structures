@@ -16,27 +16,34 @@ namespace mLib {
             bool isOccupied;
             union { T value; char dummy; };
 
-            Entry(const T& value_param, U key_param) : key(key_param), isOccupied(true) {
+            Entry(const T& value_param, const U& key_param) : key(key_param), isOccupied(true) {
                 new (&value) T(value_param);
             }
 
-            Entry(T&& value_param, U key_param) noexcept : key(key_param), isOccupied(true) {
+            Entry(T&& value_param, U&& key_param) noexcept : key(static_cast<U&&>(key_param)), isOccupied(true) {
+                new (&value) T(static_cast<T&&>(value_param));
+            }
+
+            Entry(const T& value_param, U&& key_param) noexcept : key(static_cast<U&&>(key_param)), isOccupied(true) {
+                new (&value) T(value_param);
+            }
+
+            Entry(T&& value_param, const U& key_param) noexcept : key(key_param), isOccupied(true) {
                 new (&value) T(static_cast<T&&>(value_param));
             }
 
             Entry() : key(U{}), isOccupied(false), dummy(0) {} // default constructor
 
-            Entry(Entry&& other) noexcept : key(other.key), isOccupied(other.isOccupied) {
-                new (&value) T(static_cast<T&&>(other.value));
+            Entry(Entry&& other) noexcept : key(static_cast<U&&>(other.key)), isOccupied(other.isOccupied), dummy(0) {
+                if (other.isOccupied) { new (&value) T(static_cast<T&&>(other.value)); }
                 other.isOccupied = false;
-                other.key = U{};
             }
-            Entry(const Entry& other) noexcept : key(other.key), isOccupied(other.isOccupied) {
-                new (&value) T(other.value);
+            Entry(const Entry& other) noexcept : key(other.key), isOccupied(other.isOccupied), dummy(0) {
+                if (other.isOccupied) { new (&value) T(other.value); }
             }
             Entry& operator=(Entry&& other) noexcept { // BigO(1)
                 if (this != &other) {
-                    key = other.key;
+                    key = static_cast<U&&>(other.key);
                     if (isOccupied) {
                         value.~T();
                     }
@@ -45,7 +52,6 @@ namespace mLib {
                     }
                     isOccupied = other.isOccupied;
                     other.isOccupied = false;
-                    other.key = U{};
                 }
                 return *this;
             }
@@ -80,7 +86,7 @@ namespace mLib {
         mLib::Array<Entry> table;
         size_t size;
         bool autoRehash;
-        size_t getHashCode(U key) const {
+        size_t getHashIndex(const U& key) const {
             size_t converted_key = mLib::Hash<U>{}(key);
             return converted_key % mLib::max(table.getSize(), static_cast<size_t>(1));
         }
@@ -92,7 +98,7 @@ namespace mLib {
             table[removeIndex].~Entry();
             size_t i = removeIndex;
             for (next(i); table[i].isOccupied; next(i)) {
-                if (table[i].key % table.getSize() != i && isBetweenCircular(removeIndex, getHashCode(table[i].key), i)) {
+                if (table[i].key % table.getSize() != i && isBetweenCircular(removeIndex, getHashIndex(table[i].key), i)) {
                     table[removeIndex] = static_cast<Entry&&>(table[i]);
                     removeIndex = i;
                 }
@@ -102,7 +108,8 @@ namespace mLib {
             return (keyIndex <= target && target < current) || (current < keyIndex && keyIndex <= target) || (target < current && current < keyIndex);
         }
         void add(Entry&& myEntry) { // BigO(n)
-            size_t index = getHashCode(myEntry.key);
+            rehash();
+            size_t index = getHashIndex(myEntry.key);
             if (table[index].isOccupied == false) {
                 table[index] = static_cast<Entry&&>(myEntry);
                 size++;
@@ -110,9 +117,21 @@ namespace mLib {
             else {
                 while (table[index].isOccupied && table[index].key != myEntry.key) {
                     next(index);
-                }
+                } 
                 if (table[index].isOccupied == false) {
                     size++;
+                }
+                table[index] = static_cast<Entry&&>(myEntry);
+            }
+        }
+        void move(Entry&& myEntry) { // BigO(n)
+            size_t index = getHashIndex(myEntry.key);
+            if (table[index].isOccupied == false) {
+                table[index] = static_cast<Entry&&>(myEntry);
+            }
+            else {
+                while (table[index].isOccupied) {
+                    next(index);
                 }
                 table[index] = static_cast<Entry&&>(myEntry);
             }
@@ -123,18 +142,20 @@ namespace mLib {
                 LinearHash temp(getCap() * 2);
                 for (auto& item : table) {
                     if (!item.isOccupied) { continue; }
-                    temp.add(static_cast<Entry&&>(item));
+                    temp.move(static_cast<Entry&&>(item));
                 }
+                temp.size = size;
                 *this = static_cast<LinearHash&&>(temp);
             }
         }
         void manualRehash(size_t target) { // BigO(n)
-            if (target < size){ throw std::invalid_argument("Invalid target capacity: Target capacity (" + std::to_string(target) + ") cannot be less than the current size (" + std::to_string(size) + ")."); }
+            if (target < size) { throw std::invalid_argument("Invalid target capacity: Target capacity (" + std::to_string(target) + ") cannot be less than the current size (" + std::to_string(size) + ")."); }
             LinearHash temp(target);
             for (auto& item : table) {
                 if (!item.isOccupied) { continue; }
-                temp.add(static_cast<Entry&&>(item));
+                temp.move(static_cast<Entry&&>(item));
             }
+            temp.size = size;
             *this = static_cast<LinearHash&&>(temp);
         }
     public:
@@ -156,62 +177,37 @@ namespace mLib {
 
         LinearHash& operator=(const LinearHash& other) { // BigO(n)
             if (this != &other) {
-                LinearHash temp(other);
-                *this = static_cast<LinearHash&&>(temp);
+                table = other.table;
+                size = other.size;
             }
             return *this;
         }
 
         LinearHash& operator=(LinearHash&& other) noexcept{ // BigO(1)
             if (this != &other) {
-                LinearHash temp(static_cast<LinearHash&&>(other));
-                table = static_cast<mLib::Array<Entry>&&>(temp.table);
-                size = temp.size;
+                table = static_cast<mLib::Array<Entry>&&>(other.table);
+                size = other.size;
             }
             return *this;
         }
         ~LinearHash() { 
             size = 0;
         }
-        void add(const T& value, U key) { // BigO(n)
-            rehash();
-            Entry myEntry(value, key);
-            size_t index = getHashCode(myEntry.key);
-            if (table[index].isOccupied == false) {
-                table[index] = myEntry;
-                size++;
-            }
-            else {
-                while (table[index].isOccupied && table[index].key != myEntry.key) {
-                    next(index);
-                }
-                if (table[index].isOccupied == false) {
-                    size++;
-                }
-                table[index] = myEntry;
-            }
+        void add(const T& value, const U& key) { // BigO(n)
+            add(Entry(value, key));
         }
-        void add(T&& value, U key) { // BigO(n)
-            rehash();
-            Entry myEntry(static_cast<T&&>(value), key);
-            size_t index = getHashCode(myEntry.key);
-            if (table[index].isOccupied == false) {
-                table[index] = myEntry;
-                size++;
-            }
-            else {
-                while (table[index].isOccupied && table[index].key != myEntry.key) {
-                    next(index);
-                }
-                if (table[index].isOccupied == false) {
-                    size++;
-                }
-                table[index] = myEntry;
-            }
+        void add(T&& value, U&& key) { // BigO(n)
+            add(Entry(static_cast<T&&>(value), static_cast<U&&>(key)));
         }
-        const T& get(U key) const { // BigO(n)
+        void add(const T& value, U&& key) { // BigO(n)
+            add(Entry(value, static_cast<U&&>(key)));
+        }
+        void add(T&& value, const U& key) { // BigO(n)
+            add(Entry(static_cast<T&&>(value), key));
+        }
+        T& get(const U& key) { // BigO(n)
             size_t index, finish;
-            finish = index = getHashCode(key);
+            finish = index = getHashIndex(key);
             if (isEmpty()) {
                 throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table. Capacity = " + std::to_string(getCap()));
             }
@@ -226,12 +222,29 @@ namespace mLib {
                 throw std::invalid_argument("Key not found in the hash table.");
             }
         }
-        T remove(U key) { // BigO(n)
+        const T& get(const U& key) const { // BigO(n)
+            size_t index, finish;
+            finish = index = getHashIndex(key);
             if (isEmpty()) {
                 throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table. Capacity = " + std::to_string(getCap()));
             }
             else {
-                size_t index = getHashCode(key);
+                while (table[index].isOccupied) {
+                    if (table[index].key == key) { return table[index].value; }
+                    next(index);
+                    if (index == finish) {
+                        break;
+                    }
+                }
+                throw std::invalid_argument("Key not found in the hash table.");
+            }
+        }
+        T remove(const U& key) { // BigO(n)
+            if (isEmpty()) {
+                throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table. Capacity = " + std::to_string(getCap()));
+            }
+            else {
+                size_t index = getHashIndex(key);
                 size_t finish = index;
                 if(table[index].isOccupied){  
                     do {
@@ -246,6 +259,22 @@ namespace mLib {
                 }
                 throw std::invalid_argument("Key not found in the hash table.");
             }
+        }
+        void set(const U& key, const T& value) {
+            if (isEmpty()) {
+                throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table. Capacity = " + std::to_string(getCap()));
+            }
+            size_t index = getHashIndex(key);
+            size_t finish = index;
+            if (table[index].isOccupied) {
+                do {
+                    if (table[index].key == key) {
+                        table[index].value = value;
+                    }
+                    next(index);
+                } while (index != finish && table[index].isOccupied);
+            }
+            throw std::invalid_argument("Key not found in the hash table.");
         }
         friend std::ostream& operator<<(std::ostream& os, const LinearHash& hash) { // BigO(n)
             for (size_t i = 0; i < hash.table.getSize(); i++) {

@@ -444,7 +444,7 @@ void tryBst() {
     b2.add(o9);
     b2.add(o10);
 
-    b1 = static_cast<mLib::Bst<myObj>&&>(b2);
+    b1 = b2;
 
     b1.printInOrder();
     std::cout << std::endl;
@@ -467,6 +467,7 @@ void tryBst() {
     std::cout << b1.getHeight() << std::endl;
 
     mLib::Bst<myObj> b3 = { o2, o1, o4, o9, o5, o10, o6, o3, o7, o8,};
+    b3.remove(o4);
     for (const auto& item : b3) {
         std::cout << item << " ";
     }
@@ -508,7 +509,7 @@ void tryAvl() {
     b2.add(o9);
     b2.add(o10);
 
-    b1 = static_cast<mLib::Avl<myObj>&& > (b2);
+    b1 = b2;
 
     b1.printInOrder();
     std::cout << std::endl;
@@ -565,10 +566,35 @@ void tryLinearHash() {
     mLib::LinearHash<myObj> h2 = { {myObj("Watermelon", 30), 3}, {myObj("Apple", 12), 4}, {myObj("Banana", 15), 1} };
 
     std::cout << h2 << std::endl;
-
     for (const auto& item : h2) {
         std::cout << item << std::endl;
     }
+}
+// @TEST !!! [mLib::ChainingHash]
+void tryChainingHash() {
+    mLib::ChainingHash<myObj> c1(5);
+    c1.add(myObj("Watermelon", 30), 27);
+    c1.add(myObj("Banana", 15), 22);
+    c1.add(myObj("Apple", 8), 22);
+    c1.add(myObj("Cherry", 10), 10);
+    c1.add(myObj("Pear", 12), 15);
+    c1.add(myObj("Pumpkin", 32), 0);
+    c1.add(myObj("Tomato", 13), 3);
+    c1.add(myObj("Strawberry", 16), 4);
+    c1.add(myObj("Pineapple", 23), 1);
+    c1.add(myObj("Peach", 11), 5);
+
+    for (const auto& item : c1) {
+        std::cout << item << std::endl;
+    }
+
+    mLib::ChainingHash<myObj> c2 = static_cast<mLib::ChainingHash<myObj>&&>(c1);
+
+    std::cout << c2 << std::endl;
+
+    mLib::ChainingHash<std::string, double> c3 = { {"Kevin", 22}, {"Mert", 21}, {"Bob", 10} };
+
+    std::cout << c3 << std::endl;
 }
 int main() {
     std::cout << "Welcome to mLib!" << std::endl;

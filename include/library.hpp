@@ -13,6 +13,7 @@
 #include "bst.hpp"
 #include "avl.hpp"
 #include "linearHash.hpp"
+#include "chainingHash.hpp"
 #include "utils.hpp"
 #include "bubbleSort.hpp"
 #include "mergeSort.hpp"

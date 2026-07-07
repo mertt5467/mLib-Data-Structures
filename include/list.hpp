@@ -226,6 +226,10 @@ namespace mLib {
             }
             size++;
         }
+        T& get(size_t index) { // BigO(1)
+            checkAvailableBounds(index);
+            return array[index];
+        }
         const T& get(size_t index) const { // BigO(1)
             checkAvailableBounds(index);
             return array[index];

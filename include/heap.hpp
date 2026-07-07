@@ -68,11 +68,11 @@ namespace mLib {
 			return heap.end();
 		}
 	public:
-		Heap() : cap(-1){}
+		Heap() : heap(), comp(), cap(-1) {}
 
-		explicit Heap(size_t cap_param) : heap(cap_param), cap(static_cast<long long>(cap_param)){}
+		explicit Heap(size_t cap_param) : heap(cap_param), comp(), cap(static_cast<long long>(cap_param)){}
 
-		Heap(std::initializer_list<T> initList) : heap(initList), cap(-1) { // BigO(n) Floyd's Algorithm
+		Heap(std::initializer_list<T> initList) : heap(initList), comp(), cap(-1) { // BigO(n) Floyd's Algorithm
 			if (!heap.isEmpty()) {
 				for (long long i = (heap.getSize() / 2) - 1; i >= 0; --i) {
 					heapifyDown(static_cast<size_t>(i));
@@ -80,15 +80,16 @@ namespace mLib {
 			}
 		}
 
-		Heap(const Heap& other) : heap(other.heap), cap(other.cap){} // BigO(n)
+		Heap(const Heap& other) : heap(other.heap), comp(other.comp), cap(other.cap){} // BigO(n)
 
-		Heap(Heap&& other) noexcept : heap(static_cast<List<T>&&>(other.heap)), cap(other.cap) { // BigO(1)
+		Heap(Heap&& other) noexcept : heap(static_cast<List<T>&&>(other.heap)), comp(static_cast<Compare&&>(other.comp)), cap(other.cap) { // BigO(1)
 			other.cap = 0;
 		}
 
 		Heap& operator=(const Heap& other) { // BigO(n)
 			if (this != &other) {
 				heap = other.heap;
+				comp = other.comp;
 				cap = other.cap;
 			}
 			return *this;
@@ -96,6 +97,7 @@ namespace mLib {
 		Heap& operator=(Heap&& other) noexcept{ // BigO(1)
 			if (this != &other) {
 				heap = static_cast<List<T>&&>(other.heap);
+				comp = static_cast<Compare&&>(other.comp);
 				cap = other.cap;
 
 				other.cap = 0;

@@ -135,8 +135,6 @@ namespace mLib {
             }
             return *this;
         }
-        bool isEmpty() const noexcept { return size == 0; }
-        size_t getSize() const noexcept { return size; }
         ~Sll() {
             clear();
         }
@@ -217,6 +215,12 @@ namespace mLib {
                 temp->next = myNode;
                 size++;
             }
+        }
+        T& get(size_t index) { // BigO(n)
+            checkEmpty();
+            checkAvailableBounds(index);
+            Node* temp = getNodeAddress(index);
+            return temp->value;
         }
         const T& get(size_t index) const { // BigO(n)
             checkEmpty();
@@ -469,5 +473,7 @@ namespace mLib {
             }
             return os;
         }
+        bool isEmpty() const noexcept { return size == 0; }
+        size_t getSize() const noexcept { return size; }
     };
 }

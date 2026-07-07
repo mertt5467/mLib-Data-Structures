@@ -28,7 +28,7 @@ namespace mLib {
 		size_t size;
 
 
-		void add(Node*& root, const T& value) {
+		void add(Node*& root, const T& value) { // BigO(log(n))
 			if (!root) {
 				root = new Node(value);
 				size++;
@@ -42,7 +42,7 @@ namespace mLib {
 			root->height = mLib::max(getHeight(root->left), getHeight(root->right)) + 1;
 			reBalance(root);
 		}
-		void add(Node*& root, T&& value) {
+		void add(Node*& root, T&& value) { // BigO(log(n))
 			if (!root) {
 				root = new Node(static_cast<T&&>(value));
 				size++;
@@ -56,7 +56,7 @@ namespace mLib {
 			root->height = mLib::max(getHeight(root->left), getHeight(root->right)) + 1;
 			reBalance(root);
 		}
-		void remove(Node*& root, const T& value) {
+		void remove(Node*& root, const T& value) { // BigO(log(n))
 			if (!root) { throw std::invalid_argument("Value is not found."); }
 			else if (root->value > value) {
 				remove(root->left, value);
@@ -90,7 +90,7 @@ namespace mLib {
 				reBalance(root);
 			}
 		}
-		T removeMin(Node*& root) { // BigO(n)
+		T removeMin(Node*& root) { // BigO(log(n))
 			if (!root) { throw std::invalid_argument("The minimum of the null pointer cannot be obtained."); }
 			else if (!root->left) {
 				T min = static_cast<T&&>(root->value);
@@ -112,7 +112,7 @@ namespace mLib {
 				return rtn;
 			}
 		}
-		bool search(Node* root, const T& value) const noexcept { // BigO(n)
+		bool search(Node* root, const T& value) const noexcept { // BigO(log(n))
 			if (!root) { return false; }
 			else if (root->value < value) {
 				return search(root->right, value);
@@ -124,42 +124,44 @@ namespace mLib {
 				return true;
 			}
 		}
-		void printInOrder(const Node* root) const noexcept { // BigO(n)
+		void printInOrder(const Node* root, std::ostream& os) const noexcept { // BigO(n)
 			if (!root) { return; }
-			printInOrder(root->left);
-			std::cout << root->value << " ";
-			printInOrder(root->right);
+			printInOrder(root->left, os);
+			os << root->value << " ";
+			printInOrder(root->right, os);
 		}
-		void printPreOrder(const Node* root) const noexcept { // BigO(n)
+		void printPreOrder(const Node* root, std::ostream& os) const noexcept { // BigO(n)
 			if (!root) { return; }
-			std::cout << root->value << " ";
-			printPreOrder(root->left);
-			printPreOrder(root->right);
+			os << root->value << " ";
+			printPreOrder(root->left, os);
+			printPreOrder(root->right, os);
 		}
-		void printPostOrder(const Node* root) const noexcept { // BigO(n)
+		void printPostOrder(const Node* root, std::ostream& os) const noexcept { // BigO(n)
 			if (!root) { return; }
-			printPostOrder(root->left);
-			printPostOrder(root->right);
-			std::cout << root->value << " ";
+			printPostOrder(root->left, os);
+			printPostOrder(root->right, os);
+			os << root->value << " ";
 		}
-		void printLevelOrder(const Node* root) const noexcept {
+		void printLevelOrder(const Node* root, std::ostream& os) const noexcept {
 			if (!root) { return; }
 			mLib::Queue<const Node*> queue = { root };
 
 			while (!queue.isEmpty()) {
 				const Node* current = queue.dequeue();
 
-				std::cout << current->value << " ";
+				os << current->value << " ";
 
 				if (current->left) { queue.enqueue(current->left); }
 				if (current->right) { queue.enqueue(current->right); }
 			}
 		}
-		void copyTree(const Node* root) {
-			if (!root) { return; }
-			add(root->value);
-			copyTree(root->left);
-			copyTree(root->right);
+		Node* copyTree(const Node* root) { // BigO(n)
+			if (!root) { return nullptr; }
+			Node* myNode = new Node(root->value);
+			myNode->height = root->height;
+			myNode->left = copyTree(root->left);
+			myNode->right = copyTree(root->right);
+			return myNode;
 		}
 		int getHeight(Node* root) const noexcept{
 			return (!root) ? -1 : static_cast<int>(root->height);
@@ -227,7 +229,7 @@ namespace mLib {
 			}
 		}
 		Avl(const Avl& other) : root(nullptr), size(0) { // BigO(n)
-			copyTree(other.root);
+			root = copyTree(other.root);
 		}
 
 		Avl(Avl&& other) noexcept : root(other.root), size(other.size) { // BigO(1)
@@ -242,18 +244,14 @@ namespace mLib {
 			}
 			return *this;
 		}
-		Avl& operator=(Avl&& other) noexcept {
+		Avl& operator=(Avl&& other) noexcept { // BigO(n)
 			if (this != &other) {
-				Avl<T> temp(static_cast<Avl&&>(other));
+				clear();
+				root = other.root;
+				size = other.size;
 
-				Node* moveRoot = this->root;
-				size_t moveSize = this->size;
-
-				this->root = temp.root;
-				this->size = temp.size;
-
-				temp.root = moveRoot;
-				temp.size = moveSize;
+				other.root = nullptr;
+				other.size = 0;
 			}
 			return *this;
 		}
@@ -273,42 +271,37 @@ namespace mLib {
 		bool search(const T& value) const noexcept {
 			return search(root, value);
 		}
-		void printInOrder() const noexcept {
-			if (!root) { std::cout << "EMPTY"; }
+		void printInOrder(std::ostream& os = std::cout) const noexcept {
+			if (!root) { os << "EMPTY"; }
 			else {
-				printInOrder(root);
+				printInOrder(root, os);
 			}
-			std::cout << std::endl;
+			os << std::endl;
 		}
-		void printPreOrder() const noexcept {
-			if (!root) { std::cout << "EMPTY"; }
+		void printPreOrder(std::ostream& os = std::cout) const noexcept {
+			if (!root) { os << "EMPTY"; }
 			else {
-				printPreOrder(root);
+				printPreOrder(root, os);
 			}
-			std::cout << std::endl;
+			os << std::endl;
 		}
-		void printPostOrder() const noexcept {
-			if (!root) { std::cout << "EMPTY"; }
+		void printPostOrder(std::ostream& os = std::cout) const noexcept {
+			if (!root) { os << "EMPTY"; }
 			else {
-				printPostOrder(root);
+				printPostOrder(root, os);
 			}
-			std::cout << std::endl;
+			os << std::endl;
 		}
-		void printLevelOrder() const noexcept {
-			if (!root) { std::cout << "EMPTY"; }
+		void printLevelOrder(std::ostream& os = std::cout) const noexcept {
+			if (!root) { os << "EMPTY"; }
 			else {
-				printLevelOrder(root);
+				printLevelOrder(root, os);
 			}
-			std::cout << std::endl;
+			os << std::endl;
 		}
 		friend std::ostream& operator<<(std::ostream& os, const Avl& tree) {
-			if (!tree.root) {
-				os << "EMPTY";
-			}
-			else {
-				tree.printInOrder();
-			}
-			return os << std::endl;
+			tree.printInOrder(os);
+			return os;
 		}
 		~Avl() {
 			clear(root);

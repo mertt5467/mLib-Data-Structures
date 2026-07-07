@@ -23,7 +23,7 @@
 | `mLib::Dll` (Doubly Linked List) | ✅ | Completed. |
 | `mLib::Cll` (Circular Linked List) | ✅ | Completed. |
 | `mLib::LinearHash` (Linear Probing) | ✅ | Completed. |
-| `mLib::ChainingHash` (Chaining) | ❌ |  |
+| `mLib::ChainingHash` (Chaining) | ✅ | Completed. |
 | `mLib::Stack` | ✅ | Completed. |
 | `mLib::Queue` | ✅ | Completed. |
 | `mLib::PriorityQueue` | ✅ | Completed. |
@@ -74,7 +74,7 @@ To activate the `DEBUG` macro:
 | `mLib::Dll` (Doubly Linked List) | ✅ | Tamamlandı. |
 | `mLib::Cll` (Circular Linked List) | ✅ | Tamamlandı. |
 | `mLib::LinearHash` (Linear Probing) | ✅ | Tamamlandı. |
-| `mLib::ChainingHash` (Chaining) | ❌ | |
+| `mLib::ChainingHash` (Chaining) | ✅ | Tamamlandı. |
 | `mLib::Stack` | ✅ | Tamamlandı. |
 | `mLib::Queue` | ✅ | Tamamlandı. |
 | `mLib::PriorityQueue` | ✅ | Tamamlandı. |

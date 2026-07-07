@@ -194,6 +194,12 @@ namespace mLib {
             temp->prev = myNode;
             size++;
         }
+        T& get(size_t index) { // BigO(n)
+            checkEmpty();
+            checkAvailableBounds(index);
+            const Node* temp = getNodeAddress(index);
+            return temp->value;
+        }
         const T& get(size_t index) const { // BigO(n)
             checkEmpty();
             checkAvailableBounds(index);

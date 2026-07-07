@@ -223,6 +223,11 @@ namespace mLib {
 				size++;
 			}
 		}
+		T& get(size_t index) { //BigO(n)
+			checkEmpty();
+			checkAvailableBounds(index);
+			return getNodeAddress(index)->value;
+		}
 		const T& get(size_t index) const { //BigO(n)
 			checkEmpty();
 			checkAvailableBounds(index);
