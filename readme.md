@@ -30,7 +30,7 @@
 | `mLib::Heap` | ✅ | Completed. |
 | `mLib::BST` (Binary Search Tree) | ✅ | Completed. |
 | `mLib::AVL` (Self-Balancing Tree) | ✅ | Completed. |
-| `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
+| `mLib::MatrisGraph` (Adjacency Matrix) | 🚧 | In Progress |
 | `mLib::ListGraph` (Adjacency List / Chaining) | ❌ | |
 
 ### 🧮 Algorithms
@@ -81,7 +81,7 @@ To activate the `DEBUG` macro:
 | `mLib::Heap` | ✅ | Tamamlandı. |
 | `mLib::BST` (Binary Search Tree) | ✅ | Tamamlandı. |
 | `mLib::AVL` (Self-Balancing Tree) | ✅ | Tamamlandı. |
-| `mLib::MatrisGraph` (Adjacency Matrix) | ❌ | |
+| `mLib::MatrisGraph` (Adjacency Matrix) | 🚧 | Yapım Aşamasında |
 | `mLib::ListGraph` (Adjacency List / Chaining) | ❌ | |
 
 ### 🧮 Algoritmalar 

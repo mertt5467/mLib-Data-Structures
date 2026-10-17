@@ -183,7 +183,7 @@ namespace mLib {
 			mLib::mergeSort(arr, mLib::less<T>{});
 			addBalanced(arr, 0, static_cast<long long>(arr.getSize() - 1));
 		}
-		Bst(const Bst& other) : root(nullptr), size(0) { // BigO(n)
+		Bst(const Bst& other) : root(nullptr), size(other.size) { // BigO(n)
 			root = copyTree(other.root);
 		}
 
@@ -207,7 +207,7 @@ namespace mLib {
 				size = other.size;
 
 				other.root = nullptr;
-				size = 0;
+				other.size = 0;
 			}
 			return *this;
 		}

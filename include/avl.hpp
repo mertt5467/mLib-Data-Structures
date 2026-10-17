@@ -228,7 +228,7 @@ namespace mLib {
 				add(item);
 			}
 		}
-		Avl(const Avl& other) : root(nullptr), size(0) { // BigO(n)
+		Avl(const Avl& other) : root(nullptr), size(other.size) { // BigO(n)
 			root = copyTree(other.root);
 		}
 

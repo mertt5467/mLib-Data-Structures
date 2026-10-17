@@ -154,7 +154,7 @@ namespace mLib {
 			if (isEmpty()) { throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table."); }
 			size_t index = getHashIndex(key);
 			for (auto& entry : table[index]) {
-				if (entry.key == key) { entry.value = value; }
+				if (entry.key == key) { entry.value = value; return; }
 			}
 			throw std::invalid_argument("Key not found in the hash table.");
 		}
@@ -163,7 +163,7 @@ namespace mLib {
 			if (isEmpty()) { throw std::underflow_error("Hash underflow: Operation not allowed on an empty hash table."); }
 			size_t index = getHashIndex(key);
 			for (auto& entry : table[index]) {
-				if (entry.key == key) { entry.value = static_cast<T&&>(value); }
+				if (entry.key == key) { entry.value = static_cast<T&&>(value); return; }
 			}
 			throw std::invalid_argument("Key not found in the hash table.");
 		}

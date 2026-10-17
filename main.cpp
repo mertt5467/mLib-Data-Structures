@@ -596,7 +596,15 @@ void tryChainingHash() {
 
     std::cout << c3 << std::endl;
 }
+// @TEST !!! [mLib::MatrisGraph]
+void tryMatrisGraph() {
+    mLib::MatrisGraph<myObj> m1((size_t)200);
+    m1.add(myObj("x", 70));
+    m1.add(myObj("y", 80));
+    m1.add(myObj("z", 90));
+    m1.add(myObj("w", 100));
+    m1.printMatris();
+}
 int main() {
     std::cout << "Welcome to mLib!" << std::endl;
-    return 0;
 }
