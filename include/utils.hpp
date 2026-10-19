@@ -135,4 +135,19 @@ namespace mLib {
 			return st_index;
 		}
 	};
+	namespace req {
+		template<typename T, typename U>
+		inline constexpr bool is_same = false;
+		template<typename T>
+		inline constexpr bool is_same<T, T> = true;
+		// @TODO: requires icin verilen tipin bir text/karakter olup olmadigini kontrol eden tip sorgusu eklenecek
+		/*
+		template<typename T>
+		struct is_char {
+			static constexpr bool value = false;
+		};
+		template<typename T>
+		struct is_char<>
+		*/
+	}
 }

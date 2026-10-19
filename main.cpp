@@ -596,7 +596,7 @@ void tryChainingHash() {
 
     std::cout << c3 << std::endl;
 }
-// @TEST !!! [mLib::MatrisGraph]
+// @TEST !!! [mLib::MatrisGraph] (not completed)
 void tryMatrisGraph() {
     mLib::MatrisGraph<myObj> m1((size_t)200);
     m1.add(myObj("x", 70));
